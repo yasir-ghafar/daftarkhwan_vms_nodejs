@@ -37,6 +37,7 @@ async function getLocationById(id) {
     }
 }
 
+
 async function getAllLocations() {
     try {
         const locations = await locationRepository.getAll();
