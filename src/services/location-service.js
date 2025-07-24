@@ -5,9 +5,11 @@ const locationRepository = new LocationRepository();
 
 async function createLocation(data) {
     try {
+        console.log(` Console in Service: ${data}`);
         const location = await locationRepository.create(data);
         return location;
     } catch(error) {
+        console.log(` Error in Service: ${error}`);
         if (error.name == 'SequelizeValidationError') {
             let explanation = [];
             error.errors.array.forEach((err) => {

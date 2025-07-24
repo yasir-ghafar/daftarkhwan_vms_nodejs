@@ -5,5 +5,6 @@ module.exports = {
     CompanyController: require('./company-controller'),
     MemberController: require('./member-controller'),
     MeetingRoomController: require('./meeting-room-controller'),
-    BookingController: require('./booking-controller')
+    BookingController: require('./booking-controller'),
+    
 }

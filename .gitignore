@@ -1,3 +1,4 @@
 node_modules/
 .env
 combines.log
+src/public/images

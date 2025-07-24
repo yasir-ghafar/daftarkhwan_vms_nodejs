@@ -44,8 +44,8 @@ async function loginUser(req, res) {
     return SuccessResponse;
 }
 
-
 module.exports = {
     registerUser,
-    loginUser
+    loginUser,
+    
 }
