@@ -79,8 +79,6 @@ async function loginUser(email, password) {
         if (!isMatch) {
             throw new AppError('Password is Incorrect', 400);
         }
-
-
         const token = issueToken({
             id: user.id,
             name: user.name,
