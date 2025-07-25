@@ -6,6 +6,7 @@ const router = express.Router();
 router.post('/', MeetingRoomController.createMeetingRoom);
 
 router.get('/', MeetingRoomController.getAllRooms);
+router.delete('/delete', MeetingRoomController.deleteMeetingRoom);
 router.put('/:id', MeetingRoomController.addCredits);
 
 router.post('/amenities', MeetingRoomController.createAmenity);

@@ -1,7 +1,8 @@
 const { StatusCodes } = require('http-status-codes');
 const { LocationService } = require('../services');
 
-const { SuccessResponse, ErrorResponse } = require('../utils/common')
+const { SuccessResponse, ErrorResponse } = require('../utils/common');
+const { success } = require('../utils/common/error-response');
 
 /**
  * POST : /locations
@@ -34,7 +35,7 @@ async function createLocation(req, res) {
             address: req.body.address,
             state: req.body.state,
             city: req.body.city,
-            image: relativePath
+            image: imageUrl
         });
 
         //SuccessResponse.data = location;
@@ -67,7 +68,33 @@ async function getLocations(req, res) {
 async function getLocationById(req, res) {
     
 }
+
+async function deleteLocation(req, res) {
+    try {
+        const {id} = req.body;
+
+        if (!id) {
+            return res.status(StatusCodes.BAD_REQUEST).json({
+                success: false,
+                message: 'Location ID is required.'
+            })
+        }
+
+        const response = await LocationService.deleteLocation(id);
+
+        return res.status(StatusCodes.OK).json(response);
+    } catch(error) {
+        return res
+            .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+            .json({
+                success: false,
+                message: error.message || 'Something went wrong while deleting Location.'
+            });
+    }
+
+}
 module.exports = {
     createLocation,
-    getLocations
+    getLocations,
+    deleteLocation
 } 

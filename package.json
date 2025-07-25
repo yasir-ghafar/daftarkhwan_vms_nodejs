@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "argon2": "^0.43.0",
+    "connect-timeout": "^1.9.1",
     "cors": "^2.8.5",
     "dotenv": "^17.0.0",
     "express": "^5.1.0",

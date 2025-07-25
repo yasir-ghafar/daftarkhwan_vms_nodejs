@@ -111,9 +111,9 @@ async function deleteAmenity(req, res) {
     const { id } = req.body;
 
     if (!id) {
-      return res.status(StatusCodes.BAD_REQUEST).json({
+        return res.status(StatusCodes.BAD_REQUEST).json({
         success: false,
-        message: 'Amenity ID is required'
+        message: 'Amenity ID is required.'
       });
     }
 
@@ -130,11 +130,35 @@ async function deleteAmenity(req, res) {
   }
 }
 
+
+async function deleteMeetingRoom(req, res) {
+    try {
+        const { id } = req.body;
+
+        if (!id) {
+            return res.status(StatusCodes.BAD_REQUEST).json({
+            success: false,
+            message: 'Room ID is required.'
+        });
+    }
+
+    const response = await MeetingRoomService.deleteRoom(id);
+    return res.status(StatusCodes.OK).json(response);
+    } catch(error) {
+        console.error(`Error in Controller: ${error}`);
+        return res.status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: error.message || 'Something went wrong while deleting the Meeting Room'
+    });
+    }
+}
+
 module.exports = {
 createMeetingRoom,
 getAllRooms,
+deleteMeetingRoom,
 createAmenity,
 getAllAmenities,
 deleteAmenity,
-addCredits
+addCredits,
 }

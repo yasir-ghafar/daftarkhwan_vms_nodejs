@@ -42,6 +42,37 @@ async function getAllRooms() {
     
 }
 
+async function deleteRoom(id) {
+  try {
+    const room = await meetingRoomRepository.get(id);
+
+    if (!room) {
+      throw new AppError('Room not found', StatusCodes.NOT_FOUND);
+    }
+
+    const isDeleted = await meetingRoomRepository.destroy(id);
+
+    if (!isDeleted) {
+      throw new AppError('Failed to delete Meeting room', StatusCodes.INTERNAL_SERVER_ERROR);
+    }
+
+    return {
+      success: true,
+      message: 'Meeting Room deleted successfully',
+      data: null
+    };
+  } catch (error) {
+    console.error(`Error in Service: ${error}`);
+
+    if (error.name === 'SequelizeValidationError') {
+      const explanation = error.errors.map(err => err.message);
+      throw new AppError(explanation.join(', '), StatusCodes.BAD_REQUEST);
+    }
+
+    throw error;
+  }
+}
+
 
 async function createAmenity(data) {
     try {
@@ -126,9 +157,11 @@ async function addMeetingRoomCredits(id, data) {
 }
 
 
+
 module.exports = {
     createMeetingRoom,
     getAllRooms,
+    deleteRoom,
     createAmenity,
     getAllamenities,
     deleteAmenity,
