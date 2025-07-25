@@ -45,7 +45,12 @@ router.post(
     );
 
 
+    /// get all locations
 router.get('/',
     LocationController.getLocations);
+
+    /// delete location
+router.delete('/delete',
+    LocationController.deleteLocation);
 
 module.exports = router;

@@ -58,7 +58,37 @@ async function getAllLocations() {
     
 }
 
+async function deleteLocation(id) {
+    try {
+        const location = await locationRepository.get(id);
+
+        if (!location) {
+            throw new AppError('Location not found.', StatusCodes.NOT_FOUND);
+        }
+
+        const isDeleted = await locationRepository.destroy(id);
+
+        if (!isDeleted) {
+            throw new AppError('Failed to delete location', StatusCodes.INTERNAL_SERVER_ERROR);
+        }
+
+        return {
+            success: true, 
+            message: 'Location deleted Successfully',
+            data: null
+        };
+        
+    } catch(error) {
+        if (error.name === 'SequelizeValidationError') {
+            const explanation = error.errors.map(err => err.message);
+            throw new AppError(explanation.join(', '), StatusCodes.BAD_REQUEST);
+        }
+
+        throw error;
+    }
+}
 module.exports = {
     createLocation,
-    getAllLocations
+    getAllLocations,
+    deleteLocation
 }
