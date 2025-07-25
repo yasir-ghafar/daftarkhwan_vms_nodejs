@@ -12,7 +12,8 @@ const router = express.Router();
 // cb => is a call back function
 const imageStorage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, path.join(__dirname, '..', '..', 'public', 'images'));
+        //cb(null, path.join(__dirname, '..', '..', 'public', 'images'));
+        cb(null, path.join(__dirname, '...', 'public', 'images')); /// use this to upload it to render
     },
     filename: (req, file, cb) => {
         const ext = path.extname(file.originalname);
