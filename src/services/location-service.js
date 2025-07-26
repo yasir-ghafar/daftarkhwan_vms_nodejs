@@ -94,6 +94,7 @@ async function deleteLocation(id) {
         throw error;
     }
 }
+
 module.exports = {
     createLocation,
     getAllLocations,
