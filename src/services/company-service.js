@@ -1,8 +1,7 @@
 const { StatusCodes } = require("http-status-codes");
 const { CompanyRepository } = require("../repositories");
 const AppError = require("../utils/error/app-error");
-const { success } = require("../utils/common/error-response");
-const { SuccessResponse } = require("../utils/common");
+
 
 const companyRepository = new CompanyRepository();
 
