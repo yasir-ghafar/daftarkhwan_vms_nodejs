@@ -12,6 +12,10 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       Company.hasMany(models.User, { foreignKey: 'company_id' } );
+      Company.belongsTo(models.Location, {
+        foreignKey: 'LocationId',
+        as: 'location'
+      })
     }
   }
   Company.init({
@@ -26,7 +30,9 @@ module.exports = (sequelize, DataTypes) => {
     gstn: DataTypes.STRING,
     tan: DataTypes.STRING,
     billingAddress: DataTypes.TEXT,
-    LocationId: DataTypes.INTEGER
+    LocationId: DataTypes.INTEGER,
+    locationName: DataTypes.TEXT,
+    status: DataTypes.TEXT
   }, {
     sequelize,
     modelName: 'Company',
