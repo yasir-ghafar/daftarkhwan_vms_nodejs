@@ -10,6 +10,7 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
+      MeetingRoom.belongsTo(models.Location, { foreignKey: 'LocationId'});
       MeetingRoom.hasMany(models.Booking, { foreignKey: 'room_id' });
     }
   }
@@ -25,7 +26,9 @@ module.exports = (sequelize, DataTypes) => {
     availableDays: DataTypes.JSON,
     LocationId: DataTypes.INTEGER,
     meeting_room_credits: DataTypes.DECIMAL,
-    printing_credits: DataTypes.DECIMAL
+    printing_credits: DataTypes.DECIMAL,
+    status: DataTypes.STRING,
+    locationName: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'MeetingRoom',
