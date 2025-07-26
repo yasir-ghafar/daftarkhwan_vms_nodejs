@@ -24,6 +24,28 @@ async function createMeetingRoom(data) {
     }
 }
 
+
+async function getMeetingRoomById(id) {
+  try {
+    const room = await meetingRoomRepository.get(id);
+
+    if (!room) {
+      throw new AppError('Meeting Room Not Found', StatusCodes.NOT_FOUND);
+    }
+
+    return room;
+  } catch(error) {
+    if (error.name == 'SequelizeValidationError') {
+            let explanation = [];
+            error.errors.array.forEach((err) => {
+                explanation.push(err.message);
+            });
+            console.log(explanation);
+            throw new AppError('Unable to Fetch Meeting Room', StatusCodes.INTERNAL_SERVER_ERROR);
+        }
+        throw error;
+  }
+}
 async function getAllRooms() {
     try {
         const locations = await meetingRoomRepository.getAll();
@@ -40,6 +62,31 @@ async function getAllRooms() {
         throw error;
     }
     
+}
+
+async function updateMeetingRoom(id, data) {
+  try {
+    const room = await MeetingRoomRepository.get(id);
+
+    if(!room) {
+      throw new AppError('Meeting Room not Found!', StatusCodes.NOT_FOUND);
+    }
+
+    if (Array.isArray(data.availableDays)) {
+      data.availableDays = JSON.stringify(data.availableDays);
+    }
+
+    const updatedRoom = await MeetingRoomRepository.update(id, data);
+
+    return updatedRoom;
+  } catch(error) {
+    if (error.name === 'SequelizeValidationError') {
+            const messages = error.errors.map(err => err.message);
+            throw new AppError(messages.join(', '), StatusCodes.BAD_REQUEST);
+        }
+
+        throw new AppError('Failed to update Meeting Room.', StatusCodes.INTERNAL_SERVER_ERROR);
+  }
 }
 
 async function deleteRoom(id) {
@@ -160,6 +207,7 @@ async function addMeetingRoomCredits(id, data) {
 
 module.exports = {
     createMeetingRoom,
+    getMeetingRoomById,
     getAllRooms,
     deleteRoom,
     createAmenity,

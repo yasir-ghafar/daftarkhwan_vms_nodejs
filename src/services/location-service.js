@@ -1,6 +1,6 @@
 const { StatusCodes } = require('http-status-codes');
 const { LocationRepository } = require('../repositories');
-const AppError = require('../utils/error/app-error')
+const AppError = require('../utils/error/app-error');
 const locationRepository = new LocationRepository();
 
 async function createLocation(data) {
@@ -25,7 +25,13 @@ async function createLocation(data) {
 async function getLocationById(id) {
     try {
         const location = await locationRepository.get(id);
-        return location
+        //console.log(location);
+        if (!location) {
+            throw new AppError('Location not found.', StatusCodes.NOT_FOUND);
+        }
+
+        console.log('returning object');
+        return location;
     } catch(error) {
         if (error.name == 'SequelizeValidationError') {
             let explanation = [];
@@ -57,6 +63,7 @@ async function getAllLocations() {
     }
     
 }
+
 
 async function deleteLocation(id) {
     try {
@@ -90,5 +97,6 @@ async function deleteLocation(id) {
 module.exports = {
     createLocation,
     getAllLocations,
-    deleteLocation
+    deleteLocation,
+    getLocationById,
 }

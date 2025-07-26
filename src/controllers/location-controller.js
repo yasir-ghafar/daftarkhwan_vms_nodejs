@@ -16,13 +16,13 @@ async function createLocation(req, res) {
 
    const { body, file } = req;
 
-  console.log('Form fields:', body); // All text fields
-  console.log('Image file:', file);
+ // console.log('Form fields:', body); // All text fields
+ // console.log('Image file:', file);
     try {
         console.log(req.body);
-        const filename = file.filename;
-        const imageUrl = `/public/images/${filename}`;
-        console.log(imageUrl);
+    //    const filename = file.filename;
+    //    const imageUrl = `/public/images/${filename}`;
+        //console.log(imageUrl);
         const location = await LocationService.createLocation({
             name: req.body.name,
             seatingCapacity: req.body.seatingCapacity,
@@ -35,10 +35,10 @@ async function createLocation(req, res) {
             address: req.body.address,
             state: req.body.state,
             city: req.body.city,
-            image: imageUrl
-        });
+            image: ''
+        }); 
 
-        //SuccessResponse.data = location;
+        SuccessResponse.data = location;
 
         return res.status(StatusCodes.CREATED)
                 .json(SuccessResponse);
@@ -51,6 +51,7 @@ async function createLocation(req, res) {
 
 async function getLocations(req, res) {
     try {
+        console.log('This method is getting called.');
         const locations = await LocationService.getAllLocations();
         SuccessResponse.data = locations;
         SuccessResponse.message = 'Locations Fetched Successfully!'
@@ -66,7 +67,28 @@ async function getLocations(req, res) {
 }
 
 async function getLocationById(req, res) {
-    
+    try {
+        const {id} = req.params;
+
+        if (!id) {
+            return res.status(StatusCodes.BAD_REQUEST).json({
+                success: false,
+                message: 'Location Id is required.'
+            })
+        }
+        
+        const location = await LocationService.getLocationById(id);
+        console.log(`Loction in controller: ${location}`);
+        SuccessResponse.data = location;
+        return res.status(StatusCodes.OK)
+        .json(SuccessResponse)
+    } catch(error) {
+            console.log(error);
+            ErrorResponse.error = error;
+            return res
+                .status(error.statusCode)
+                .json(ErrorResponse);
+    }
 }
 
 async function deleteLocation(req, res) {
@@ -76,7 +98,7 @@ async function deleteLocation(req, res) {
         if (!id) {
             return res.status(StatusCodes.BAD_REQUEST).json({
                 success: false,
-                message: 'Location ID is required.'
+                message: 'Location Id is required.'
             })
         }
 
@@ -93,8 +115,11 @@ async function deleteLocation(req, res) {
     }
 
 }
+
+
 module.exports = {
     createLocation,
     getLocations,
-    deleteLocation
+    deleteLocation,
+    getLocationById
 } 

@@ -35,8 +35,10 @@ async function createMeetingRoom(req, res) {
 
 async function getAllRooms(req, res) {
     try {
+        console.log('this method called.')
         const rooms = await MeetingRoomService.getAllRooms();
         SuccessResponse.data = rooms;
+        SuccessResponse.message = 'Meeting Rooms Fetched Successfully!'
         return res
             .status(StatusCodes.OK)
             .json(SuccessResponse);
@@ -46,6 +48,36 @@ async function getAllRooms(req, res) {
             .status(error.StatusCodes)
             .json(ErrorResponse)
     }
+}
+
+async function getRoomById(req, res) {
+    try {
+        const {id} = req.params;
+
+        if (!id) {
+            ErrorResponse.message = 'Room Id is Required!';
+            return res.status(StatusCodes.BAD_REQUEST)
+                .json({ErrorResponse});
+        }
+
+        const room = await MeetingRoomService.getMeetingRoomById(id);
+
+        SuccessResponse.data = room;
+
+        return res.status(StatusCodes.OK)
+            .json({SuccessResponse})
+    } catch(error) {
+        console.log(error);
+        ErrorResponse.error = error;
+        return res
+            .status(error.statusCode)
+            .json(ErrorResponse);
+    }
+}
+
+
+async function updateMeetingRoom(req, res) {
+        
 }
 
 
@@ -155,6 +187,7 @@ async function deleteMeetingRoom(req, res) {
 
 module.exports = {
 createMeetingRoom,
+getRoomById,
 getAllRooms,
 deleteMeetingRoom,
 createAmenity,

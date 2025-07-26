@@ -13,7 +13,7 @@ const router = express.Router();
 const imageStorage = multer.diskStorage({
     destination: (req, file, cb) => {
         //cb(null, path.join(__dirname, '..', '..', 'public', 'images'));
-        cb(null, path.join(__dirname, '...', 'public', 'images')); /// use this to upload it to render
+        cb(null, path.join(__dirname, '..', 'public', 'images')); /// use this to upload it to render
     },
     filename: (req, file, cb) => {
         const ext = path.extname(file.originalname);
@@ -45,10 +45,15 @@ router.post(
     LocationController.createLocation,
     );
 
+router.get('/:id',
+    LocationController.getLocationById);
+
 
     /// get all locations
 router.get('/',
     LocationController.getLocations);
+
+
 
     /// delete location
 router.delete('/delete',
