@@ -56,7 +56,7 @@ router.get('/',
 
 
     /// delete location
-router.delete('/delete',
+router.delete('/delete/:id',
     LocationController.deleteLocation);
 
 module.exports = router;
