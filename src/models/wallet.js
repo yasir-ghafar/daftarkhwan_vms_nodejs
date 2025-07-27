@@ -17,7 +17,9 @@ module.exports = (sequelize, DataTypes) => {
   }
   Wallet.init({
     user_id: DataTypes.INTEGER,
-    balance: DataTypes.INTEGER
+    balance: DataTypes.INTEGER,
+    meeting_room_credits: DataTypes.DECIMAL,
+    printing_credits: DataTypes.DECIMAL
   }, {
     sequelize,
     modelName: 'Wallet',

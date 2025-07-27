@@ -93,7 +93,7 @@ async function getLocationById(req, res) {
 
 async function deleteLocation(req, res) {
     try {
-        const {id} = req.body;
+        const {id} = req.params;
 
         if (!id) {
             return res.status(StatusCodes.BAD_REQUEST).json({
