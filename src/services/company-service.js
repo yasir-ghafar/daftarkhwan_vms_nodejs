@@ -3,6 +3,8 @@ const { CompanyRepository } = require("../repositories");
 const AppError = require("../utils/error/app-error");
 
 
+
+
 const companyRepository = new CompanyRepository();
 
 async function createCompany(data) {
@@ -54,6 +56,7 @@ async function deleteCompany(id) {
     if (!company) {
       throw new AppError("Company not found.", StatusCodes.NOT_FOUND);
     }
+
 
     const isDeleted = await companyRepository.destroy(id);
 

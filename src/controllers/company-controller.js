@@ -6,7 +6,6 @@ const company = require('../models/company');
 
 const VALID_STATUSES = ['Active', 'Inactive', 'Suspended'];
 
-
 async function createCompany(req, res) {
     try {
         console.log(req.body);

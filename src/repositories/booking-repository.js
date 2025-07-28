@@ -1,4 +1,5 @@
-const { sequelize , Booking } = require('../models');
+const { sequelize , Booking, MeetingRoom, Location, User, Company } = require('../models');
+const { Logger } = require('../config');
 
 async function createBooking({ date, startTime, endTime, slots, location_id, room_id, company_id, user_id, total_credits }, transaction) {
     return await Booking.create({
@@ -41,7 +42,84 @@ async function areSlotsAvailable({ room_id, date, slots, startTime, endTime }, t
   return results.length === 0;
 }
 
+
+async function getBookings() {
+  try {
+    return await Booking.findAll({
+      include: [
+        {
+          model: MeetingRoom,
+          as: 'Room',
+          attributes: ['id', 'name'],
+          include: [
+            {
+              model: Location,
+              as: 'Location',
+              attributes: ['id', 'name']
+            }
+          ]
+        },
+        {
+          model: User,
+          as: 'User',
+          attributes: ['id', 'name'],
+          include: [
+            {
+              model: Company,
+              as: 'Company',
+              attributes: ['id', 'name']
+            }
+          ]
+        }
+      ]
+    });
+  } catch (error) {
+    Logger.error('Something went wrong in Booking Repo: getBookings', error);
+    throw error;
+  }
+}
+
+async function getBookingWithUserandRoom(bookingId, transaction) {
+
+  console.log('Logged In Repo: ', bookingId);
+  return await Booking.findOne({
+    where: {id: bookingId },
+    include: [
+      {
+        model: MeetingRoom,
+        as: 'Room'
+      },
+    ],
+    transaction
+  });
+}
+
+async function cancelBookingById(bookingId, transaction) {
+  const [affectedRows] = await Booking.update(
+    { status: 'cancelled' },
+    {
+      where: { id: bookingId },
+      transaction
+    }
+  );
+
+  if (affectedRows === 0) {
+    throw new AppError('Booking not found or already cancelled', StatusCodes.NOT_FOUND);
+  }
+
+  return true; // or return the updated booking if needed
+}
+
+async function deleteBooking(bookingId, transaction) {
+  return await this.Booking.destroy({ where: { id: bookingId }, transaction });
+}
+
+
 module.exports = { 
   createBooking,
-  areSlotsAvailable
+  getBookings,
+  areSlotsAvailable,
+  cancelBookingById,
+  getBookingWithUserandRoom,
+  deleteBooking
 };
