@@ -4,6 +4,8 @@ const AppError = require('../utils/error/app-error');
 const amenity = require('../models/amenity');
 const { log } = require('winston');
 
+const { Location } = require('../models');
+
 const meetingRoomRepository = new MeetingRoomRepository();
 const amenityRepository = new AmenityRepository();
 
@@ -48,7 +50,13 @@ async function getMeetingRoomById(id) {
 }
 async function getAllRooms() {
     try {
-        const locations = await meetingRoomRepository.getAll();
+        const locations = await meetingRoomRepository.getAll({
+          include: [{
+            model: Location,
+            as: 'location',
+            attribute: ['name'],
+          }]
+        });
         return locations
     } catch(error) {
         if (error.name == 'SequelizeValidationError') {

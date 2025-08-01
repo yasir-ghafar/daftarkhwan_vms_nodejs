@@ -5,7 +5,8 @@ const authRoutes = require('./auth-routes');
 const companyRoutes = require('./company-routes');
 const memberRoutes = require('./member-route');
 const roomRoutes = require('./meeting-room-route');
-const bookingRoute = require('./booking-routes');
+const bookingRoute 
+= require('./booking-routes');
 
 const router = express.Router();
 
