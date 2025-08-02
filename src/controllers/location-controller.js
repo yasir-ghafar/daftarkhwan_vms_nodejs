@@ -71,7 +71,7 @@ async function updateLocation(req, res) {
       status: body.status, // assuming 'status' replaces 'state'
       // image: imageUrl || '', // uncomment when file upload is needed
     };
-    console.log("log in controller", updateLocation)
+
     const location = await LocationService.updateLocation(id, updatedData);
     SuccessResponse.data = location;
     return res.status(StatusCodes.OK).json(SuccessResponse);

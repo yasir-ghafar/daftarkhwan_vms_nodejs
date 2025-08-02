@@ -38,7 +38,7 @@ async function updateLocation(id, data) {
       throw new AppError('Location not found', StatusCodes.NOT_FOUND);
     }
 
-    const updatedLocation = await locationRepository.update(data);
+    const updatedLocation = await locationRepository.update(id, data);
     return updatedLocation;
   } catch (error) {
     console.log(`Error in updateLocation Service: ${error}`);
