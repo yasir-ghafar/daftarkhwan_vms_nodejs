@@ -16,7 +16,6 @@ router.use('/locations',
     AuthMiddlewares.getUserAndGetUserId,
     locationRoutes);
 router.use('/auth',
-    AuthMiddlewares.getUserAndGetUserId,
     authRoutes);
 router.use('/company',
     AuthMiddlewares.getUserAndGetUserId,
