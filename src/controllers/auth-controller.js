@@ -45,7 +45,6 @@ async function loginUser(req, res) {
     return SuccessResponse;
 }
 
-
 async function getUsers(req, res) {
     try {
         let users;

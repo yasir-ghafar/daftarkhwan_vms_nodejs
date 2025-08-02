@@ -15,10 +15,20 @@ const router = express.Router();
 router.use('/locations',
     AuthMiddlewares.getUserAndGetUserId,
     locationRoutes);
-router.use('/auth', authRoutes);
-router.use('/company', companyRoutes);
-router.use('/members', memberRoutes);
-router.use('/meeting-rooms', roomRoutes);
-router.use('/bookings', bookingRoute);
+router.use('/auth',
+    AuthMiddlewares.getUserAndGetUserId,
+    authRoutes);
+router.use('/company',
+    AuthMiddlewares.getUserAndGetUserId,
+    companyRoutes);
+router.use('/members',
+    AuthMiddlewares.getUserAndGetUserId,
+    memberRoutes);
+router.use('/meeting-rooms',
+    AuthMiddlewares.getUserAndGetUserId,
+    roomRoutes);
+router.use('/bookings',
+    AuthMiddlewares.getUserAndGetUserId,
+    bookingRoute);
 
 module.exports = router;
