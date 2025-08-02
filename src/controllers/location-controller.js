@@ -80,6 +80,7 @@ async function getLocationById(req, res) {
         const location = await LocationService.getLocationById(id);
         console.log(`Loction in controller: ${location}`);
         SuccessResponse.data = location;
+        SuccessResponse.message = 'Location Fetched Successfully'
         return res.status(StatusCodes.OK)
         .json(SuccessResponse)
     } catch(error) {

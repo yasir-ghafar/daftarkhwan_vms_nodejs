@@ -104,7 +104,6 @@ async function loginUser(email, password) {
     }
 }
 
-
 async function hashPassword(password) {
     return await  argon2.hash(password);
 }
@@ -115,6 +114,47 @@ async function comparePassword(hashedPassword, password) {
     } catch(error) {
         console.log(`Error in comparing password: ${error}`)
     }
+}
+
+async function getUserProfile(userId) {
+    try {
+        const user = await authRepository.get(userId);
+        return user;
+    } catch (error) {
+    if (error.name == "SequelizeValidationError") {
+      let explanation = [];
+      error.errors.array.forEach((err) => {
+        explanation.push(err.message);
+      });
+      console.log(explanation);
+      throw new AppError(
+        "Unable to Fetch Location",
+        StatusCodes.INTERNAL_SERVER_ERROR
+      );
+    }
+    throw error;
+  }
+}
+
+
+async function getAllUsers() {
+    try {
+        const users = await authRepository.getAll();
+        return users;
+    } catch (error) {
+    if (error.name == "SequelizeValidationError") {
+      let explanation = [];
+      error.errors.array.forEach((err) => {
+        explanation.push(err.message);
+      });
+      console.log(explanation);
+      throw new AppError(
+        "Unable to Fetch Location",
+        StatusCodes.INTERNAL_SERVER_ERROR
+      );
+    }
+    throw error;
+  }
 }
 
 
@@ -130,6 +170,8 @@ module.exports = {
     createUser,
     loginUser,
     checkUserAlreadyExists,
-    verifyToken
+    verifyToken,
+    getUserProfile,
+    getAllUsers
     
 }

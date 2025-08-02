@@ -3,6 +3,7 @@ const { AuthService } = require('../services');
 const { ErrorResponse } = require('../utils/common');
 const jwt = require('jsonwebtoken');
 const { ServerConfig } = require('../config');
+const { message } = require('../utils/common/error-response');
 
 async function checkIfUserExists(req, res, next) {
     try {
@@ -48,8 +49,43 @@ async function authenticateToken(req, res, next) {
     });
 }
 
+async function getUserAndGetUserId(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Unauthorized: No token provided' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  console.log(token);
+  try {
+    const decoded = jwt.verify(token, ServerConfig.JWT_SECRET);
+    // Attach user ID to the request
+    req.userId = decoded.id;
+    req.role = decoded.role;
+    // Optionally, you can attach full user data here if token includes it
+    // req.user = decoded;
+
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+  }
+
+}
+
+const authorizeRoles = (...allowedRoles) => {
+  return (req, res, next) => {
+    console.log(req.role);
+    if (!allowedRoles.includes(req.role)) {
+      return res.status(403).json({ message: 'Forbidden: Access denied' });
+    }
+    next();
+  };
+};
 
 module.exports = {
     checkIfUserExists,
-    authenticateToken
+    authenticateToken,
+    getUserAndGetUserId,
+    authorizeRoles
 }

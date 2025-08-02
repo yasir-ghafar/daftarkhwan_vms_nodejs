@@ -30,8 +30,8 @@ module.exports = (sequelize, DataTypes) => {
     email: DataTypes.STRING,
     legalBusinessName: DataTypes.STRING,
     address: DataTypes.TEXT,
-    state: DataTypes.STRING,
     city: DataTypes.STRING,
+    status: DataTypes.STRING,
     image: {
       type: DataTypes.STRING,
       allowNull: true

@@ -50,14 +50,15 @@ async function getMeetingRoomById(id) {
 }
 async function getAllRooms() {
     try {
-        const locations = await meetingRoomRepository.getAll({
+        const rooms = await meetingRoomRepository.getAll({
           include: [{
             model: Location,
             as: 'location',
             attribute: ['name'],
           }]
         });
-        return locations
+        console.log(`${rooms}`)
+        return rooms
     } catch(error) {
         if (error.name == 'SequelizeValidationError') {
             let explanation = [];
