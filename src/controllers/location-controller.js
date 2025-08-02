@@ -23,22 +23,22 @@ async function createLocation(req, res) {
     //    const filename = file.filename;
     //    const imageUrl = `/public/images/${filename}`;
         //console.log(imageUrl);
-        const location = await LocationService.createLocation({
-            name: req.body.name,
-            seatingCapacity: req.body.seatingCapacity,
-            area: req.body.area,
-            contactNumber: req.body.contactNumber,
-            email: req.body.email,
-            businessStartTime: req.body.businessStartTime,
-            businessEndTime: req.body.businessEndTime,
-            legalBusinessName: req.body.legalBusinessName,
-            address: req.body.address,
-            state: req.body.state,
-            city: req.body.city,
-            image: ''
-        }); 
+        // const location = await LocationService.createLocation({
+        //     name: req.body.name,
+        //     seatingCapacity: req.body.seatingCapacity,
+        //     area: req.body.area,
+        //     contactNumber: req.body.contactNumber,
+        //     email: req.body.email,
+        //     businessStartTime: req.body.businessStartTime,
+        //     businessEndTime: req.body.businessEndTime,
+        //     legalBusinessName: req.body.legalBusinessName,
+        //     address: req.body.address,
+        //     state: req.body.state,
+        //     city: req.body.city,
+        //     image: ''
+        // }); 
 
-        SuccessResponse.data = location;
+        // SuccessResponse.data = {location: location};
 
         return res.status(StatusCodes.CREATED)
                 .json(SuccessResponse);
@@ -49,11 +49,44 @@ async function createLocation(req, res) {
     }
 }
 
+async function updateLocation(req, res) {
+  const { id } = req.params;
+  const { body, file } = req;
+   try {
+    // Optional image handling
+    // const filename = file?.filename;
+    // const imageUrl = filename ? `/public/images/${filename}` : undefined;
+
+    const updatedData = {
+      name: body.name,
+      seatingCapacity: body.seatingCapacity,
+      area: body.area,
+      contactNumber: body.contactNumber,
+      email: body.email,
+      businessStartTime: body.businessStartTime,
+      businessEndTime: body.businessEndTime,
+      legalBusinessName: body.legalBusinessName,
+      address: body.address,
+      city: body.city,
+      status: body.status, // assuming 'status' replaces 'state'
+      // image: imageUrl || '', // uncomment when file upload is needed
+    };
+    console.log("log in controller", updateLocation)
+    const location = await LocationService.updateLocation(id, updatedData);
+    SuccessResponse.data = { location: location };
+    return res.status(StatusCodes.OK).json(SuccessResponse);
+  } catch (error) {
+    ErrorResponse.error = error;
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(ErrorResponse);
+  }
+}
+
+
 async function getLocations(req, res) {
     try {
         console.log('This method is getting called.');
         const locations = await LocationService.getAllLocations();
-        SuccessResponse.data = locations;
+        SuccessResponse.data = {locations: locations};
         SuccessResponse.message = 'Locations Fetched Successfully!'
         return res.status(StatusCodes.OK)
         .json(SuccessResponse)
@@ -79,7 +112,7 @@ async function getLocationById(req, res) {
         
         const location = await LocationService.getLocationById(id);
         console.log(`Loction in controller: ${location}`);
-        SuccessResponse.data = location;
+        SuccessResponse.data = {location: location};
         SuccessResponse.message = 'Location Fetched Successfully'
         return res.status(StatusCodes.OK)
         .json(SuccessResponse)
@@ -122,5 +155,6 @@ module.exports = {
     createLocation,
     getLocations,
     deleteLocation,
-    getLocationById
+    getLocationById,
+    updateLocation
 } 

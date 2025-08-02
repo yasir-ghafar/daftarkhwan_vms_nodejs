@@ -28,6 +28,29 @@ async function createLocation(data) {
   }
 }
 
+
+async function updateLocation(id, data) {
+  try {
+    console.log("logged in service", data)
+    const location = await locationRepository.get(id);
+
+    if (!location) {
+      throw new AppError('Location not found', StatusCodes.NOT_FOUND);
+    }
+
+    const updatedLocation = await locationRepository.update(data);
+    return updatedLocation;
+  } catch (error) {
+    console.log(`Error in updateLocation Service: ${error}`);
+    if (error.name === 'SequelizeValidationError') {
+      const explanation = error.errors.map((err) => err.message);
+      console.log(explanation);
+      throw new AppError('Validation failed', StatusCodes.BAD_REQUEST);
+    }
+    throw error;
+  }
+}
+
 async function getLocationById(id) {
   try {
     const location = await locationRepository.get(id);
@@ -123,4 +146,5 @@ module.exports = {
   getAllLocations,
   deleteLocation,
   getLocationById,
+  updateLocation
 };

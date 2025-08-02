@@ -30,7 +30,7 @@ async function loginUser(req, res) {
           
             const user = await AuthService.loginUser(email, password);
     
-            SuccessResponse.data = user;
+            SuccessResponse.data = {user: user};
             SuccessResponse.message = 'User Logged In Successfully!'
             return res
             .status(StatusCodes.OK)

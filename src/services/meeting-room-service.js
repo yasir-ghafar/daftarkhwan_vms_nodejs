@@ -1,7 +1,7 @@
 const { StatusCodes } = require('http-status-codes');
 const { MeetingRoomRepository, AmenityRepository } = require('../repositories');
 const AppError = require('../utils/error/app-error');
-const amenity = require('../models/amenity');
+const { MeetingRoom  } = require('../models');
 const { log } = require('winston');
 
 const { Location } = require('../models');

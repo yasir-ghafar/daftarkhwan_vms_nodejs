@@ -3,7 +3,8 @@ const multer = require('multer');
 const path = require('path');
 
 const { LocationController } = require('../../controllers');
-const { LocationMiddlewares, AuthMiddlewares } = require('../../middlewares')
+const { LocationMiddlewares, AuthMiddlewares } = require('../../middlewares');
+const { updateLocation } = require('../../controllers/location-controller');
 const router = express.Router();
 
 
@@ -22,6 +23,7 @@ const imageStorage = multer.diskStorage({
     
 });
 
+
 const imageFileFilter = (req, file, cb) => {
     if (file.mimetype.startsWith("image/")) {
         cb(null, true);
@@ -36,7 +38,6 @@ const imageUpload = multer({
     limits: { fileSize: 5 * 1024 * 1024 }, //5mb
 });
 
-
 // /api/v1/locations POST
 router.post(
     '/',
@@ -49,17 +50,19 @@ router.get('/:id',
     AuthMiddlewares.authorizeRoles('admin', 'member'),
     LocationController.getLocationById);
 
-
     /// get all locations
 router.get('/',
     AuthMiddlewares.authorizeRoles('admin', 'member'),
     LocationController.getLocations);
 
-
-
     /// delete location
 router.delete('/delete/:id',
     AuthMiddlewares.authorizeRoles('admin'),
     LocationController.deleteLocation);
+
+router.put('/:id',
+    AuthMiddlewares.authorizeRoles('admin'),
+    imageUpload.single("image"),
+    LocationController.updateLocation);
 
 module.exports = router;
