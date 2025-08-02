@@ -35,6 +35,14 @@ module.exports = (sequelize, DataTypes) => {
     image: {
       type: DataTypes.STRING,
       allowNull: true
+    },
+    lat: {
+      type: DataTypes.DECIMAL(10, 8),
+      allowNull: false
+    },
+    lng: {
+      type: DataTypes.DECIMAL(11, 8),
+      allowNull: false
     }
   }, {
     sequelize,
