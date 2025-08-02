@@ -20,25 +20,25 @@ async function createLocation(req, res) {
  // console.log('Image file:', file);
     try {
         console.log(req.body);
-    //    const filename = file.filename;
-    //    const imageUrl = `/public/images/${filename}`;
-        //console.log(imageUrl);
-        // const location = await LocationService.createLocation({
-        //     name: req.body.name,
-        //     seatingCapacity: req.body.seatingCapacity,
-        //     area: req.body.area,
-        //     contactNumber: req.body.contactNumber,
-        //     email: req.body.email,
-        //     businessStartTime: req.body.businessStartTime,
-        //     businessEndTime: req.body.businessEndTime,
-        //     legalBusinessName: req.body.legalBusinessName,
-        //     address: req.body.address,
-        //     state: req.body.state,
-        //     city: req.body.city,
-        //     image: ''
-        // }); 
+       const filename = file.filename;
+       const imageUrl = `/public/images/${filename}`;
+        console.log(imageUrl);
+        const location = await LocationService.createLocation({
+            name: req.body.name,
+            seatingCapacity: req.body.seatingCapacity,
+            area: req.body.area,
+            contactNumber: req.body.contactNumber,
+            email: req.body.email,
+            businessStartTime: req.body.businessStartTime,
+            businessEndTime: req.body.businessEndTime,
+            legalBusinessName: req.body.legalBusinessName,
+            address: req.body.address,
+            state: req.body.state,
+            city: req.body.city,
+            image: ''
+        }); 
 
-        // SuccessResponse.data = {location: location};
+        SuccessResponse.data = {location};
 
         return res.status(StatusCodes.CREATED)
                 .json(SuccessResponse);
@@ -73,7 +73,7 @@ async function updateLocation(req, res) {
     };
     console.log("log in controller", updateLocation)
     const location = await LocationService.updateLocation(id, updatedData);
-    SuccessResponse.data = { location: location };
+    SuccessResponse.data = location;
     return res.status(StatusCodes.OK).json(SuccessResponse);
   } catch (error) {
     ErrorResponse.error = error;

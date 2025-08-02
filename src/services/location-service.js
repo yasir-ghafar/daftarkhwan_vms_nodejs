@@ -31,14 +31,14 @@ async function createLocation(data) {
 
 async function updateLocation(id, data) {
   try {
-    console.log("logged in service", data)
+    console.log("logged in service",)
     const location = await locationRepository.get(id);
 
     if (!location) {
       throw new AppError('Location not found', StatusCodes.NOT_FOUND);
     }
 
-    const updatedLocation = await locationRepository.update(data);
+    const updatedLocation = await location.update(data);
     return updatedLocation;
   } catch (error) {
     console.log(`Error in updateLocation Service: ${error}`);
