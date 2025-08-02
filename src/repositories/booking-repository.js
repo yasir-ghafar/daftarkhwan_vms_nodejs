@@ -54,7 +54,7 @@ async function getBookings() {
           include: [
             {
               model: Location,
-              as: 'Location',
+              as: 'location',
               attributes: ['id', 'name']
             }
           ]

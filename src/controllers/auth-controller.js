@@ -45,12 +45,6 @@ async function loginUser(req, res) {
     return SuccessResponse;
 }
 
-async function getUserProfile(req, res) {
-    const userId = req.userId;
-
-    const user = AuthService.getUserProfile(userId);
-}
-
 
 async function getUsers(req, res) {
     try {
@@ -85,7 +79,6 @@ async function getUsers(req, res) {
 module.exports = {
     registerUser,
     loginUser,
-    getUserProfile,
     getUsers
     
 }

@@ -15,9 +15,6 @@ router.post('/register',
     
 router.post('/login', AuthController.loginUser);
 
-router.post('/profile',
-    AuthMiddlewares.getUserAndGetUserId,
-    AuthController.getUserProfile);
 
 router.get('/users',
     AuthMiddlewares.getUserAndGetUserId,

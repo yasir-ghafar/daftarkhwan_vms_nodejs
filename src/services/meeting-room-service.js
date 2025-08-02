@@ -54,7 +54,7 @@ async function getAllRooms() {
           include: [{
             model: Location,
             as: 'location',
-            attribute: ['name'],
+            attributes: ['name'],
           }]
         });
         console.log(`${rooms}`)
