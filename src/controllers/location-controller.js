@@ -86,7 +86,7 @@ async function getLocations(req, res) {
     try {
         console.log('This method is getting called.');
         const locations = await LocationService.getAllLocations();
-        SuccessResponse.data = {locations: locations};
+        SuccessResponse.data = locations;
         SuccessResponse.message = 'Locations Fetched Successfully!'
         return res.status(StatusCodes.OK)
         .json(SuccessResponse)
@@ -112,7 +112,7 @@ async function getLocationById(req, res) {
         
         const location = await LocationService.getLocationById(id);
         console.log(`Loction in controller: ${location}`);
-        SuccessResponse.data = {location: location};
+        SuccessResponse.data = location;
         SuccessResponse.message = 'Location Fetched Successfully'
         return res.status(StatusCodes.OK)
         .json(SuccessResponse)
