@@ -85,6 +85,7 @@ async function getRoomsByLocationId(req, res) {
         }
         const rooms = await MeetingRoomService.getRoomsByLocationId(id);
 
+
         SuccessResponse.data = rooms;
         SuccessResponse.message = 'Rooms Fetched Successfully!'
 

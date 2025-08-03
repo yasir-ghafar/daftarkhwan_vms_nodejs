@@ -57,8 +57,34 @@ async function getBookings(req, res) {
     }
 }
 
+
+async function bookigsByRoomAndDate(req, res) {
+    console.log('getting in controller');
+    const { room_id, date } = req.query;
+
+      console.log("Room Id", room_id);
+      console.log("Date", date);
+    try {
+        const bookings = await bookingService.getBookingsByRoomIdAndDate(room_id,date);
+
+        SuccessResponse.data = bookings;
+        SuccessResponse.message = 'Bookings Fetched Successfully!'
+
+        return res.status(StatusCodes.OK)
+            .json(SuccessResponse);
+    } catch(error) {
+        console.log(`Error: ${error}`);
+        ErrorResponse.error = error;
+        return res
+            .status(error.statusCode)
+            .json(ErrorResponse);
+    }
+}
+
+
 module.exports = {
     createBooking,
     getBookings,
-    cancelBooking
+    cancelBooking,
+    bookigsByRoomAndDate
 }

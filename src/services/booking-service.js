@@ -122,10 +122,10 @@ async function bookMeetingRoom({
     if (!user || !user.Wallet)
       throw new AppError("User or Wallet Not found", StatusCodes.NOT_FOUND);
 
-    console.log(`${user.name} has Wallet with Balance ${user.Wallet.balance}`);
+    console.log(`${user.name} has Wallet with Balance ${user.Wallet.meeting_room_credits}`);
     console.log(`Booking cost is ${cost} Credits`);
     /// check if user have balance in wallet and in does not below the cost of the meeting.
-    if (user.Wallet.balance < cost)
+    if (user.Wallet.meeting_room_credits < cost)
       throw new AppError("Insufficient wallet balance", StatusCodes.FORBIDDEN);
 
     //Deduct balance
@@ -166,7 +166,7 @@ async function bookMeetingRoom({
   }
 }
 
-async function getAllBookings(req, res) {
+async function getAllBookings() {
     try {
         const bookings = await bookingRepo.getBookings();
         return bookings
@@ -281,8 +281,34 @@ async function cancelBooking(bookingId, userId) {
   }
 }
 
+async function getBookingsByRoomIdAndDate(roomId, date) {
+
+  console.log('getting in service');
+  if (!roomId || !date) {
+    throw new AppError('room_id and date are required', StatusCodes.BAD_REQUEST);
+  }
+
+  try {
+    const bookings =  await bookingRepo.getBookingsByRoomAndDate(roomId, date);
+    return bookings;
+  } catch(error) {
+        if (error.name == "SequelizeValidationError") {
+      let explanation = [];
+      error.errors.array.forEach((err) => {
+        explanation.push(err.message);
+      });
+      console.log(explanation);
+      throw new AppError(
+        "Cannot create a new Airplane object",
+        StatusCodes.INTERNAL_SERVER_ERROR
+      );
+    }
+    throw error;
+    }
+}
 module.exports = {
   bookMeetingRoom,
   getAllBookings,
   cancelBooking,
+  getBookingsByRoomIdAndDate,
 };

@@ -1,5 +1,6 @@
 const { sequelize , Booking, MeetingRoom, Location, User, Company } = require('../models');
 const { Logger } = require('../config');
+const { Op } = require('sequelize');
 
 async function createBooking({ date, startTime, endTime, slots, location_id, room_id, company_id, user_id, total_credits }, transaction) {
     return await Booking.create({
@@ -115,11 +116,51 @@ async function deleteBooking(bookingId, transaction) {
 }
 
 
+async function getBookingsByRoomAndDate(roomId, date) {
+
+  console.log("Room Id", roomId);
+  console.log("Date", date);
+  return await Booking.findAll({
+    where: {
+      room_id: roomId,
+      date: date, // filtering by exact date
+    },
+    include: [
+      {
+        model: MeetingRoom,
+        as: 'Room',
+        attributes: ['id', 'name'],
+        include: [
+          {
+            model: Location,
+            as: 'location',
+            attributes: ['id', 'name'],
+          }
+        ]
+      },
+      {
+        model: User,
+        as: 'User',
+        attributes: ['id', 'name'],
+        include: [
+          {
+            model: Company,
+            as: 'Company',
+            attributes: ['id', 'name'],
+          }
+        ]
+      }
+    ]
+  });
+}
+
+
 module.exports = { 
   createBooking,
   getBookings,
   areSlotsAvailable,
   cancelBookingById,
   getBookingWithUserandRoom,
-  deleteBooking
+  deleteBooking,
+  getBookingsByRoomAndDate
 };

@@ -142,12 +142,40 @@ async function updateCompanyStatus(req, res) {
     }
 }
 
+async function updateWalletCredits(req, res) {
+
+    
+    const walletId = req.params.id;
+    const { meeting_room_credits, printing_credits } = req.body;
+    console.log("getting wallet with id:", walletId);
+    try {
+        const updatedWallet = await CompanyService.updateWalletCreditsService(walletId, {
+            meeting_room_credits,
+            printing_credits
+        });
+        
+        SuccessResponse.data = updatedWallet;
+        SuccessResponse.message = 'Successfully updated wallet';
+
+        return res.status(StatusCodes.OK)
+            .json(SuccessResponse);
+    } catch(error) {
+        return res
+            .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+            .json({
+                success: false,
+                message: error.message || 'Something went wrong while updating Company.'
+            });
+    }
+}
+
 
 module.exports = {
     createCompany,
     getCompanies,
     getCompanyById,
     deletCompany,
-    updateCompanyStatus
+    updateCompanyStatus,
+    updateWalletCredits
 
 }

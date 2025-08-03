@@ -1,5 +1,7 @@
 const { StatusCodes } = require("http-status-codes");
+const { sequelize } = require('../models');
 const { CompanyRepository } = require("../repositories");
+const walletRepository = require("../repositories/wallet-repository");
 const AppError = require("../utils/error/app-error");
 
 
@@ -136,10 +138,45 @@ async function updateCompanyStatus(id, status) {
   }
 }
 
+
+
+async function updateWalletCreditsService(walletId, updates) {
+
+    console.log("getting here in service")
+    return await sequelize.transaction(async (transaction) => {
+        // Update wallet credits
+        const updatedWallet = await walletRepository.updatewalletCredits(walletId, updates, transaction);
+
+        // Optionally log transactions
+        if (updates.meeting_room_credits) {
+            await walletRepository.logWalletTransaction(
+                walletId,
+                updates.meeting_room_credits > 0 ? 'credit' : 'debit',
+                Math.abs(updates.meeting_room_credits),
+                'Meeting room credit update',
+                transaction
+            );
+        }
+
+        if (updates.printing_credits) {
+            await walletRepository.logWalletTransaction(
+                walletId,
+                updates.printing_credits > 0 ? 'credit' : 'debit',
+                Math.abs(updates.printing_credits),
+                'Printing credit update',
+                transaction
+            );
+        }
+
+        return updatedWallet;
+    });
+}
+
 module.exports = {
   createCompany,
   getAllCompanies,
   deleteCompany,
   getCompanyById,
-  updateCompanyStatus
+  updateCompanyStatus,
+  updateWalletCreditsService
 };

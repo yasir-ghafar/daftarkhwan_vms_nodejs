@@ -3,7 +3,7 @@ const CrudRepository = require('./crud-repository');
 
 async function updateWalletBalance(wallet, amount, transaction) {
     console.log(`Wallet Amount to be deducted. ${amount}`);
-    wallet.balance = Number(wallet.balance) + Number(amount);
+    wallet.meeting_room_credits = Number(wallet.meeting_room_credits) + Number(amount);
     await wallet.save({transaction});
 }
 
@@ -16,7 +16,28 @@ async function logWalletTransaction(walletId, type, amount, reason, transaction)
     }, { transaction });
 }
 
+async function updatewalletCredits(walletId, updates, transaction) {
+
+    console.log(walletId);
+    console.log("updates", updates)
+    const wallet = await Wallet.findByPk(walletId, { transaction});
+
+    if (!wallet) throw new Error(`Wallet with ID ${walletId} not found`);
+
+    if (typeof updates.meeting_room_credits !== 'undefined') {
+        wallet.meeting_room_credits = Number(wallet.meeting_room_credits) + Number(updates.meeting_room_credits);
+    }
+
+    if (typeof updates.printing_credits !== 'undefined') {
+        wallet.printing_credits = Number(wallet.printing_credits) + Number(updates.printing_credits);
+    }
+
+    await wallet.save({ transaction });
+    return wallet;
+}
+
 module.exports = {
     updateWalletBalance,
-    logWalletTransaction
+    logWalletTransaction,
+    updatewalletCredits
 }
