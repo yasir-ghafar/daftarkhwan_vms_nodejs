@@ -3,6 +3,7 @@ const { MeetingRoomService, } = require('../services');
 const { SuccessResponse, ErrorResponse } = require('../utils/common');
 const { success } = require('../utils/common/error-response');
 const { Console } = require('winston/lib/winston/transports');
+const { json } = require('sequelize');
 
 async function createMeetingRoom(req, res) {
     try {
@@ -53,7 +54,6 @@ async function getAllRooms(req, res) {
 async function getRoomById(req, res) {
     try {
         const {id} = req.params;
-
         if (!id) {
             ErrorResponse.message = 'Room Id is Required!';
             return res.status(StatusCodes.BAD_REQUEST)
@@ -75,6 +75,29 @@ async function getRoomById(req, res) {
     }
 }
 
+async function getRoomsByLocationId(req, res) {
+    try {
+        const {id} = req.params;
+        if (!id) {
+            ErrorResponse.message = 'Location Id is Required!';
+            return res.status(StatusCodes.BAD_REQUEST)
+                .json({ErrorResponse});
+        }
+        const rooms = await MeetingRoomService.getRoomsByLocationId(id);
+
+        SuccessResponse.data = rooms;
+        SuccessResponse.message = 'Rooms Fetched Successfully!'
+
+        return res.status(StatusCodes.OK)
+            .json(SuccessResponse)
+    } catch(error) {
+        console.log(error);
+        ErrorResponse.error = error;
+        return res
+            .status(error.statusCode)
+            .json(ErrorResponse);
+    }
+}
 
 async function updateMeetingRoom(req, res) {
         
@@ -194,4 +217,5 @@ createAmenity,
 getAllAmenities,
 deleteAmenity,
 addCredits,
+getRoomsByLocationId
 }

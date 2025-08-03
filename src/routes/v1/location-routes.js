@@ -41,6 +41,7 @@ const imageUpload = multer({
 // /api/v1/locations POST
 router.post(
     '/',
+    AuthMiddlewares.getUserAndGetUserId,
     AuthMiddlewares.authorizeRoles('admin'),
     imageUpload.single("image"),
     LocationController.createLocation,
@@ -52,11 +53,11 @@ router.get('/:id',
 
     /// get all locations
 router.get('/',
-    AuthMiddlewares.authorizeRoles('admin', 'member'),
     LocationController.getLocations);
 
     /// delete location
 router.delete('/delete/:id',
+    AuthMiddlewares.getUserAndGetUserId,
     AuthMiddlewares.authorizeRoles('admin'),
     LocationController.deleteLocation);
 

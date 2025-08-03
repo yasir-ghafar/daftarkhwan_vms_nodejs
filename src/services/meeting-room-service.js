@@ -5,6 +5,7 @@ const { MeetingRoom  } = require('../models');
 const { log } = require('winston');
 
 const { Location } = require('../models');
+const { where } = require('sequelize');
 
 const meetingRoomRepository = new MeetingRoomRepository();
 const amenityRepository = new AmenityRepository();
@@ -71,6 +72,32 @@ async function getAllRooms() {
         throw error;
     }
     
+}
+
+async function getRoomsByLocationId(locationId) {
+  try {
+    const rooms = await meetingRoomRepository.getAll({
+      where: {locationId},
+      include: [{
+        model: Location,
+        as: 'location',
+        attributes:['name']
+      }]
+    });
+
+    if (!rooms || rooms.length === 0) {
+      throw new AppError('No Meeting Room found for the given Location', StatusCodes.NOT_FOUND);
+    }
+
+    return rooms;
+  } catch (error) {
+    if (error.name === 'SequelizeValidationError') {
+      const messages = error.errors.map(err => err.message);
+      throw new AppError(messages.join(', '), StatusCodes.BAD_REQUEST);
+    }
+
+    throw new AppError('Failed to fetch Meeting Rooms by Location ID', StatusCodes.INTERNAL_SERVER_ERROR);
+  }
 }
 
 async function updateMeetingRoom(id, data) {
@@ -222,5 +249,6 @@ module.exports = {
     createAmenity,
     getAllamenities,
     deleteAmenity,
-    addMeetingRoomCredits
+    addMeetingRoomCredits,
+    getRoomsByLocationId
 }

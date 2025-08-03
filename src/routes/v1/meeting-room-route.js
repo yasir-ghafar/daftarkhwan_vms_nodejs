@@ -13,4 +13,5 @@ router.put('/:id', MeetingRoomController.addCredits);
 router.post('/amenities', MeetingRoomController.createAmenity);
 router.get('/amenities', MeetingRoomController.getAllAmenities);
 router.delete('/amenities/delete', MeetingRoomController.deleteAmenity);
+router.get('/location/:id', MeetingRoomController.getRoomsByLocationId);
 module.exports = router;

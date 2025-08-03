@@ -13,7 +13,6 @@ const bookingRoute = require('./booking-routes');
 const router = express.Router();
 
 router.use('/locations',
-    AuthMiddlewares.getUserAndGetUserId,
     locationRoutes);
 router.use('/auth',
     authRoutes);
