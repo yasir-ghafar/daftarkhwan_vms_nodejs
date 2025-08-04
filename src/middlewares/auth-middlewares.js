@@ -75,6 +75,7 @@ async function getUserAndGetUserId(req, res, next) {
 
 const authorizeRoles = (...allowedRoles) => {
   return (req, res, next) => {
+    console.log(req.role);
     if (!allowedRoles.includes(req.role)) {
       return res.status(403).json({ message: 'Forbidden: Access denied' });
     }

@@ -4,14 +4,11 @@ const { CompanyRepository } = require("../repositories");
 const walletRepository = require("../repositories/wallet-repository");
 const AppError = require("../utils/error/app-error");
 
-
-
-
 const companyRepository = new CompanyRepository();
 
 async function createCompany(data) {
+  console.log(`reached in company service: ${data}`);
   try {
-    console.log(`reached in company service: ${data}`);
     const company = await companyRepository.create(data);
     return company;
   } catch (error) {
