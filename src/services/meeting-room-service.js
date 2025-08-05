@@ -55,6 +55,7 @@ async function getMeetingRoomById(id) {
     throw error;
   }
 }
+
 async function getAllRooms() {
   try {
     const rooms = await meetingRoomRepository.getAll({
@@ -64,26 +65,39 @@ async function getAllRooms() {
           as: "location",
           attributes: ["name"],
         },
+        {
+          model: Booking,
+          required: false,
+        },
       ],
     });
-    console.log(`${rooms}`);
-    return rooms;
+
+    const roomsWithSlots = rooms.map((room) => {
+      const roomData = room.toJSON();
+      const { availableSlotsCount } = calculateAvailableSlots(roomData, roomData.Bookings);
+
+      delete roomData.Bookings;
+
+      return {
+        ...roomData,
+        availableSlotsCount,
+      };
+    });
+
+    return roomsWithSlots;
   } catch (error) {
-    if (error.name == "SequelizeValidationError") {
-      let explanation = [];
-      error.errors.array.forEach((err) => {
-        explanation.push(err.message);
-      });
-      console.log(explanation);
-      throw new AppError(
-        "Unable to Fetch Meeting Rooms",
-        StatusCodes.INTERNAL_SERVER_ERROR
-      );
+    console.error(error);
+    if (error.name === "SequelizeValidationError") {
+      const messages = error.errors.map((err) => err.message);
+      throw new AppError(messages.join(", "), StatusCodes.BAD_REQUEST);
     }
-    throw error;
+
+    throw new AppError(
+      "Unable to Fetch Meeting Rooms",
+      StatusCodes.INTERNAL_SERVER_ERROR
+    );
   }
 }
-
 // async function getRoomsByLocationId(locationId) {
 //   try {
 //     const rooms = await meetingRoomRepository.getAll({
@@ -278,71 +292,9 @@ async function getRoomsByLocationId(locationId) {
         },
         {
           model: Booking,
-          required: false, // allow rooms with no bookings
+          required: false,
         },
       ],
-    });
-
-    const today = moment().format("YYYY-MM-DD");
-    const todayStart = moment().startOf("day");
-    const todayEnd = moment().endOf("day");
-
-    const roomsWithSlots = rooms.map((room) => {
-      const bookingsToday = (room.Bookings || []).filter((booking) => {
-        return booking.date === today;
-      });
-
-      const opening = moment(
-        todayStart.format("YYYY-MM-DD") + " " + room.openingTime
-      );
-      const closing = moment(
-        todayStart.format("YYYY-MM-DD") + " " + room.closingTime
-      );
-      const slotDuration = 30;
-      const allSlots = [];
-      let current = opening.clone();
-      while (current.add(slotDuration, "minutes").isSameOrBefore(closing)) {
-        const slotStart = current.clone().subtract(slotDuration, "minutes");
-        const slotEnd = current.clone();
-
-        allSlots.push({
-          start: slotStart.format("HH:mm"),
-          end: slotEnd.format("HH:mm"),
-        });
-      }
-      console.log("All Slots", allSlots.length);
-      const availableSlots = allSlots.filter((slot) => {
-        const slotStartTime = moment(
-          todayStart.format("YYYY-MM-DD") + " " + slot.start
-        );
-        const slotEndTime = moment(
-          todayStart.format("YYYY-MM-DD") + " " + slot.end
-        );
-
-        const overlaps = bookingsToday.some((booking) => {
-          const bookingStart = moment(
-            todayStart.format("YYYY-MM-DD") + " " + booking.startTime
-          );
-          const bookingEnd = moment(
-            todayStart.format("YYYY-MM-DD") + " " + booking.endTime
-          );
-
-          return (
-            slotStartTime.isBefore(bookingEnd) &&
-            slotEndTime.isAfter(bookingStart)
-          );
-        });
-        return !overlaps;
-      });
-
-      console.log("Available Slots:", availableSlots.length);
-      const roomData = room.toJSON();
-      delete roomData.Bookings;
-
-      return {
-        ...roomData,
-        availableSlotsCount: availableSlots.length,
-      };
     });
 
     if (!rooms || rooms.length === 0) {
@@ -352,9 +304,21 @@ async function getRoomsByLocationId(locationId) {
       );
     }
 
+    const roomsWithSlots = rooms.map((room) => {
+      const roomData = room.toJSON();
+      const { availableSlotsCount } = calculateAvailableSlots(roomData, roomData.Bookings);
+
+      delete roomData.Bookings;
+
+      return {
+        ...roomData,
+        availableSlotsCount,
+      };
+    });
+
     return roomsWithSlots;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     if (error.name === "SequelizeValidationError") {
       const messages = error.errors.map((err) => err.message);
       throw new AppError(messages.join(", "), StatusCodes.BAD_REQUEST);
@@ -366,6 +330,57 @@ async function getRoomsByLocationId(locationId) {
     );
   }
 }
+
+
+
+
+function calculateAvailableSlots(room, bookings) {
+  const today = moment().format("YYYY-MM-DD");
+  const todayStart = moment().startOf("day");
+
+  const opening = moment(`${today} ${room.openingTime}`);
+  const closing = moment(`${today} ${room.closingTime}`);
+
+  const slotDuration = 30; // minutes
+  const allSlots = [];
+  let current = opening.clone();
+
+  while (current.add(slotDuration, "minutes").isSameOrBefore(closing)) {
+    const slotStart = current.clone().subtract(slotDuration, "minutes");
+    const slotEnd = current.clone();
+
+    allSlots.push({
+      start: slotStart.format("HH:mm"),
+      end: slotEnd.format("HH:mm"),
+    });
+  }
+
+  const bookingsToday = (bookings || []).filter(
+    (booking) => booking.date === today
+  );
+
+  const availableSlots = allSlots.filter((slot) => {
+    const slotStartTime = moment(`${today} ${slot.start}`);
+    const slotEndTime = moment(`${today} ${slot.end}`);
+
+    return !bookingsToday.some((booking) => {
+      const bookingStart = moment(`${today} ${booking.startTime}`);
+      const bookingEnd = moment(`${today} ${booking.endTime}`);
+      return (
+        slotStartTime.isBefore(bookingEnd) &&
+        slotEndTime.isAfter(bookingStart)
+      );
+    });
+  });
+
+  return {
+    availableSlots,
+    availableSlotsCount: availableSlots.length,
+  };
+}
+
+module.exports = { calculateAvailableSlots };
+
 
 module.exports = {
   createMeetingRoom,
