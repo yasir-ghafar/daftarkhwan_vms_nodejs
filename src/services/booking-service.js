@@ -72,6 +72,7 @@ async function bookMeetingRoom({
   room_id,
   company_id,
   user_id,
+  status
 }) {
   console.log({ user_id, room_id });
   const transaction = await sequelize.transaction();
@@ -153,6 +154,7 @@ async function bookMeetingRoom({
         company_id: company_id,
         user_id: user_id,
         total_credits: cost,
+        status
       },
       transaction
     );
