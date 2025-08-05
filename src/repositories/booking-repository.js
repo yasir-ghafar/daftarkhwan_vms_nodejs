@@ -2,7 +2,7 @@ const { sequelize , Booking, MeetingRoom, Location, User, Company } = require('.
 const { Logger } = require('../config');
 const { Op } = require('sequelize');
 
-async function createBooking({ date, startTime, endTime, slots, location_id, room_id, company_id, user_id, total_credits }, transaction) {
+async function createBooking({ date, startTime, endTime, slots, location_id, room_id, company_id, user_id, total_credits, status }, transaction) {
     return await Booking.create({
       user_id: user_id,
       room_id: room_id,
@@ -13,7 +13,8 @@ async function createBooking({ date, startTime, endTime, slots, location_id, roo
       company_id: company_id,
       startTime: startTime,
       endTime: endTime,
-      total_credits: total_credits
+      total_credits: total_credits,
+      status: status
     }, { transaction });
 }
 
