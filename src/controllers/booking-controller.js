@@ -5,11 +5,11 @@ const { SuccessResponse } = require('../utils/common');
 
 
 async function createBooking(req, res) {
-    const { date, startTime, endTime, location_id, room_id, company_id, user_id } = req.body;
+    const { date, startTime, endTime, location_id, room_id, company_id, user_id, status } = req.body;
 
     try {
         const booking = await bookingService.bookMeetingRoom(
-            { date, startTime, endTime, location_id, room_id, company_id, user_id }
+            { date, startTime, endTime, location_id, room_id, company_id, user_id, status }
         );
         return res
             .status(StatusCodes.CREATED)
