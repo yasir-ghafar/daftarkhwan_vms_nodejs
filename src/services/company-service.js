@@ -3,6 +3,7 @@ const { sequelize } = require('../models');
 const { CompanyRepository } = require("../repositories");
 const walletRepository = require("../repositories/wallet-repository");
 const AppError = require("../utils/error/app-error");
+const { User, Wallet, Location } = require('../models');
 
 const companyRepository = new CompanyRepository();
 
@@ -30,9 +31,25 @@ async function createCompany(data) {
 
 async function getAllCompanies() {
   try {
-    const companies = await companyRepository.getAll();
+    const companies = await companyRepository.getAll({
+      include: [
+            {
+                model: User,
+                include: [
+                    {
+                        model: Wallet
+                    }
+                ]
+            },
+            {
+                model: Location,
+                as: 'location'
+            }
+        ]
+    });
     return companies;
   } catch (error) {
+    console.log("Error in Company Service:", error);
     if (error.name == "SequelizeValidationError") {
       let explanation = [];
       error.errors.array.forEach((err) => {
@@ -40,7 +57,7 @@ async function getAllCompanies() {
       });
       console.log(explanation);
       throw new AppError(
-        "Cannot create a new Airplane object",
+        "Unable to fetch companies",
         StatusCodes.INTERNAL_SERVER_ERROR
       );
     }
@@ -83,7 +100,18 @@ async function deleteCompany(id) {
 
 async function getCompanyById(id) {
   try {
-    const company = await companyRepository.get(id);
+    const company = await companyRepository.getWithOptions(id, {
+      include: [
+        {
+          model: User,
+          include: [Wallet]
+        },
+        {
+          model: Location,
+          as: 'location'
+        }
+      ]
+    });
 
     if (!company) {
       throw new AppError("Company not found.", StatusCodes.NOT_FOUND);

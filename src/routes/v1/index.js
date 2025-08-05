@@ -8,6 +8,7 @@ const companyRoutes = require('./company-routes');
 const memberRoutes = require('./member-route');
 const roomRoutes = require('./meeting-room-route');
 const bookingRoute = require('./booking-routes');
+const amenitiyRoute = require('./amenity-route');
 
 
 const router = express.Router();
@@ -28,5 +29,6 @@ router.use('/meeting-rooms',
 router.use('/bookings',
     AuthMiddlewares.getUserAndGetUserId,
     bookingRoute);
+router.use('/amenities', amenitiyRoute)
 
 module.exports = router;

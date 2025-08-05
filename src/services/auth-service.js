@@ -159,7 +159,7 @@ async function getAllUsers() {
 
 
 function issueToken(payload) {
-  return jwt.sign(payload, ServerConfig.JWT_SECRET, { expiresIn: '1h' });
+  return jwt.sign(payload, ServerConfig.JWT_SECRET, { expiresIn: '12h' });
 }
 
 async function verifyToken(token) {

@@ -42,7 +42,17 @@ class CrudRepository {
             throw error;
         }
     }
-
+    
+    async getWithOptions(data, options = {}) {
+        console.log("getting to this method");
+        try {
+            const response = await this.model.findByPk(data, options);
+            return response;
+        } catch(error) {
+            Logger.error('Something went wrong in the Crud Repo: get');
+            throw error;
+        }
+    }
     async getAll() {
         try {
             const response = await this.model.findAll();
@@ -52,6 +62,7 @@ class CrudRepository {
             throw error;
         }
     }
+    
 
     async getAll(options = {}) {
         try {

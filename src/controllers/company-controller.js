@@ -8,7 +8,7 @@ const VALID_STATUSES = ['Active', 'Inactive', 'Suspended'];
 
 async function createCompany(req, res) {
     try {
-        console.log("Getting in controller");
+        console.log("Getting in controller")
         console.log(req.body);
         const company  = await CompanyService.createCompany({
             name: req.body.name,
