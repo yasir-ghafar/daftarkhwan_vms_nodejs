@@ -154,7 +154,7 @@ async function bookMeetingRoom({
         company_id: company_id,
         user_id: user_id,
         total_credits: cost,
-        status
+        status: status
       },
       transaction
     );
