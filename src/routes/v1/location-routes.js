@@ -46,6 +46,7 @@ router.post(
     );
 
 router.get('/:id',
+    AuthMiddlewares.getUserAndGetUserId,
     AuthMiddlewares.authorizeRoles('admin', 'member'),
     LocationController.getLocationById);
 

@@ -334,42 +334,90 @@ async function getRoomsByLocationId(locationId) {
 
 
 
-function calculateAvailableSlots(room, bookings) {
+// function calculateAvailableSlots(room, bookings) {
+//   const today = moment().format("YYYY-MM-DD");
+//   const todayStart = moment().startOf("day");
+
+//   const opening = moment(`${today} ${room.openingTime}`);
+//   const closing = moment(`${today} ${room.closingTime}`);
+
+//   const slotDuration = 30; // minutes
+//   const allSlots = [];
+//   let current = opening.clone();
+
+//   while (current.add(slotDuration, "minutes").isSameOrBefore(closing)) {
+//     const slotStart = current.clone().subtract(slotDuration, "minutes");
+//     const slotEnd = current.clone();
+
+//     allSlots.push({
+//       start: slotStart.format("HH:mm"),
+//       end: slotEnd.format("HH:mm"),
+//     });
+//   }
+
+//   const bookingsToday = (bookings || []).filter(
+//     (booking) => booking.date === today
+//   );
+
+//   const availableSlots = allSlots.filter((slot) => {
+//     const slotStartTime = moment(`${today} ${slot.start}`);
+//     const slotEndTime = moment(`${today} ${slot.end}`);
+
+//     return !bookingsToday.some((booking) => {
+//       const bookingStart = moment(`${today} ${booking.startTime}`);
+//       const bookingEnd = moment(`${today} ${booking.endTime}`);
+//       return (
+//         slotStartTime.isBefore(bookingEnd) &&
+//         slotEndTime.isAfter(bookingStart)
+//       );
+//     });
+//   });
+
+//   return {
+//     availableSlots,
+//     availableSlotsCount: availableSlots.length,
+//   };
+// }
+
+function calculateAvailableSlots(room, bookings = []) {
   const today = moment().format("YYYY-MM-DD");
-  const todayStart = moment().startOf("day");
 
-  const opening = moment(`${today} ${room.openingTime}`);
-  const closing = moment(`${today} ${room.closingTime}`);
+  // Combine today's date with opening and closing times
+  console.log(room.openingTime);
+  console.log(room.closingTime);
+  const openingTime = moment(`${today} ${room.openingTime}`, "YYYY-MM-DD hh:mm:ss A");
+  const closingTime = moment(`${today} ${room.closingTime}`, "YYYY-MM-DD hh:mm:ss A");
 
-  const slotDuration = 30; // minutes
-  const allSlots = [];
-  let current = opening.clone();
+  if (!openingTime.isValid() || !closingTime.isValid() || openingTime.isSameOrAfter(closingTime)) {
+    return { availableSlots: [], availableSlotsCount: 0 };
+  }
 
-  while (current.add(slotDuration, "minutes").isSameOrBefore(closing)) {
-    const slotStart = current.clone().subtract(slotDuration, "minutes");
-    const slotEnd = current.clone();
+  const SLOT_DURATION_MINUTES = 30;
+  const slots = [];
 
-    allSlots.push({
+  let slotStart = openingTime.clone();
+
+  while (slotStart.clone().add(SLOT_DURATION_MINUTES, "minutes").isSameOrBefore(closingTime)) {
+    const slotEnd = slotStart.clone().add(SLOT_DURATION_MINUTES, "minutes");
+    slots.push({
       start: slotStart.format("HH:mm"),
       end: slotEnd.format("HH:mm"),
     });
+    slotStart = slotEnd;
   }
 
-  const bookingsToday = (bookings || []).filter(
-    (booking) => booking.date === today
-  );
+  const bookingsToday = bookings.filter(b => b.date === today);
 
-  const availableSlots = allSlots.filter((slot) => {
-    const slotStartTime = moment(`${today} ${slot.start}`);
-    const slotEndTime = moment(`${today} ${slot.end}`);
+  const availableSlots = slots.filter(slot => {
+    const slotStartTime = moment(`${today} ${slot.start}`, "YYYY-MM-DD HH:mm");
+    const slotEndTime = moment(`${today} ${slot.end}`, "YYYY-MM-DD HH:mm");
 
-    return !bookingsToday.some((booking) => {
-      const bookingStart = moment(`${today} ${booking.startTime}`);
-      const bookingEnd = moment(`${today} ${booking.endTime}`);
-      return (
-        slotStartTime.isBefore(bookingEnd) &&
-        slotEndTime.isAfter(bookingStart)
-      );
+    return !bookingsToday.some(booking => {
+      const bookingStart = moment(`${today} ${booking.startTime}`, "YYYY-MM-DD HH:mm");
+      const bookingEnd = moment(`${today} ${booking.endTime}`, "YYYY-MM-DD HH:mm");
+
+      // Check for overlap
+      return slotStartTime.isBefore(bookingEnd) && slotEndTime.isAfter(bookingStart);
     });
   });
 
@@ -379,7 +427,7 @@ function calculateAvailableSlots(room, bookings) {
   };
 }
 
-module.exports = { calculateAvailableSlots };
+
 
 
 module.exports = {

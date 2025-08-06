@@ -4,18 +4,21 @@ const { SuccessResponse, ErrorResponse } = require('../utils/common');
 const { success } = require('../utils/common/error-response');
 const { Console } = require('winston/lib/winston/transports');
 const { json } = require('sequelize');
+const moment = require('moment');
 
 async function createMeetingRoom(req, res) {
     try {
-        console.log(req.body)
+        //console.log(req.body)
+        openingTime = moment(req.body.openingTime, "hh:mm:ss A").format("HH:mm:ss");
+        closingTime = moment(req.body.closingTime, "hh:mm:ss A").format("HH:mm:ss");
         const room = await MeetingRoomService.createMeetingRoom({
             name: req.body.name,
             creditsPerSlot: req.body.creditsPerSlot,
             pricePerCredit: req.body.pricePerCredit,
             seatingCapacity: req.body.seatingCapacity,
             image: req.body.image,
-            openingTime: req.body.openingTime,
-            closingTime: req.body.closingTime,
+            openingTime: openingTime,
+            closingTime: closingTime,
             floor: req.body.floor,
             availableDays: req.body.availableDays,
             LocationId: req.body.locationId,
@@ -23,7 +26,9 @@ async function createMeetingRoom(req, res) {
             amenities: req.body.amenities
         });
 
-        SuccessResponse.data = room;
+        
+
+         SuccessResponse.data = room;
         return res
                 .status(StatusCodes.CREATED)
                 .json(SuccessResponse);
@@ -35,6 +40,9 @@ async function createMeetingRoom(req, res) {
             .json(ErrorResponse);
     }
 }
+
+
+
 
 async function getAllRooms(req, res) {
     try {
