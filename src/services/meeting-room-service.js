@@ -440,4 +440,5 @@ module.exports = {
   deleteAmenity,
   addMeetingRoomCredits,
   getRoomsByLocationId,
+  updateMeetingRoom
 };

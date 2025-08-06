@@ -146,7 +146,6 @@ async function bookMeetingRoom({
       {
         date: date,
         startTime,
-        startTime,
         endTime: endTime,
         slots: slots,
         location_id: location_id,

@@ -8,9 +8,6 @@ const moment = require('moment');
 
 async function createMeetingRoom(req, res) {
     try {
-        //console.log(req.body)
-        openingTime = moment(req.body.openingTime, "hh:mm:ss A").format("HH:mm:ss");
-        closingTime = moment(req.body.closingTime, "hh:mm:ss A").format("HH:mm:ss");
         const room = await MeetingRoomService.createMeetingRoom({
             name: req.body.name,
             creditsPerSlot: req.body.creditsPerSlot,
@@ -41,7 +38,38 @@ async function createMeetingRoom(req, res) {
     }
 }
 
+async function updateMeetingRoom(req, res) {
+    try {
+        const {id} = req.params;
+        const room = await MeetingRoomService.updateMeetingRoom(id, {
+            name: req.body.name,
+            creditsPerSlot: req.body.creditsPerSlot,
+            pricePerCredit: req.body.pricePerCredit,
+            seatingCapacity: req.body.seatingCapacity,
+            image: req.body.image,
+            openingTime: openingTime,
+            closingTime: closingTime,
+            floor: req.body.floor,
+            availableDays: req.body.availableDays,
+            LocationId: req.body.locationId,
+            status: req.body.status,
+            amenities: req.body.amenities
+        });
 
+        
+
+         SuccessResponse.data = room;
+        return res
+                .status(StatusCodes.CREATED)
+                .json(SuccessResponse);
+                
+    } catch(error) {
+        ErrorResponse.error = error;
+        return res
+            .status(StatusCodes.INTERNAL_SERVER_ERROR)
+            .json(ErrorResponse);
+    }
+}
 
 
 async function getAllRooms(req, res) {
@@ -110,9 +138,6 @@ async function getRoomsByLocationId(req, res) {
     }
 }
 
-async function updateMeetingRoom(req, res) {
-        
-}
 
 
 async function addCredits(req, res) {
@@ -228,5 +253,6 @@ createAmenity,
 getAllAmenities,
 deleteAmenity,
 addCredits,
-getRoomsByLocationId
+getRoomsByLocationId,
+updateMeetingRoom
 }
