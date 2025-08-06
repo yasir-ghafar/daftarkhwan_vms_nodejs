@@ -6,6 +6,7 @@ const company = require('../models/company');
 
 const VALID_STATUSES = ['Active', 'Inactive', 'Suspended'];
 
+/// Create Company
 async function createCompany(req, res) {
     try {
         console.log("Getting in controller")
@@ -40,6 +41,7 @@ async function createCompany(req, res) {
     }
 }
 
+/// Get All Companies
 async function getCompanies(req, res) {
     try {
         const companies = await CompanyService.getAllCompanies();
@@ -56,6 +58,34 @@ async function getCompanies(req, res) {
     }
 }
 
+/// Get Companies by Location ID
+async function getCompaniesByLocationId(req, res) {
+    try {
+        const { id } = req.params;
+
+        if (!id ) {
+            return res.status(StatusCodes.BAD_REQUEST).json({
+                success: false,
+                message: 'Location Id is required.'
+            })
+        }
+
+        const companies = await CompanyService.getCompaniesByLocationId(id);
+
+        SuccessResponse.data = companies;
+
+        return res.status(StatusCodes.OK)
+            .json({SuccessResponse});
+    } catch(error) {
+        console.log(error);
+        ErrorResponse.error = error;
+        return res
+            .status(error.statusCode)
+            .json(ErrorResponse);
+    }
+}
+
+/// Get Company by Company Id
 async function  getCompanyById(req, res) {
     try {
         const {id} = req.params;
@@ -82,7 +112,7 @@ async function  getCompanyById(req, res) {
     }
 }
 
-
+/// Delete Company
 async function deletCompany(req, res) {
     try {
         const {id} = req.body;
@@ -108,6 +138,7 @@ async function deletCompany(req, res) {
 
 }
 
+/// Update Company Status
 async function updateCompanyStatus(req, res) {
     try {
         const {id, status } = req.body;
@@ -143,6 +174,8 @@ async function updateCompanyStatus(req, res) {
     }
 }
 
+
+/// Update Wallet
 async function updateWalletCredits(req, res) {
 
     
@@ -170,13 +203,13 @@ async function updateWalletCredits(req, res) {
     }
 }
 
-
 module.exports = {
     createCompany,
     getCompanies,
     getCompanyById,
     deletCompany,
     updateCompanyStatus,
-    updateWalletCredits
+    updateWalletCredits,
+    getCompaniesByLocationId
 
 }

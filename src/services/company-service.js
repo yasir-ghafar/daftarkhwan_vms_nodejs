@@ -4,6 +4,7 @@ const { CompanyRepository } = require("../repositories");
 const walletRepository = require("../repositories/wallet-repository");
 const AppError = require("../utils/error/app-error");
 const { User, Wallet, Location } = require('../models');
+const { where } = require("sequelize");
 
 const companyRepository = new CompanyRepository();
 
@@ -134,6 +135,44 @@ async function getCompanyById(id) {
   }
 }
 
+
+async function getCompaniesByLocationId(id) {
+  try {
+    console.log("Location Id: ", id)
+    const companies = await companyRepository.getAll({
+      where: {
+        LocationId : id
+      },
+      include: [
+        {
+          model: User,
+          include: [Wallet]
+        },
+        {
+          model: Location,
+          as: 'location'
+        }
+      ]
+    });
+ 
+    console.log("Companies Fetched:",companies);
+    return companies;
+  } catch (error) {
+    if (error.name == "SequelizeValidationError") {
+      let explanation = [];
+      error.errors.array.forEach((err) => {
+        explanation.push(err.message);
+      });
+      console.log(explanation);
+      throw new AppError(
+        "Unable to Fetch Locations",
+        StatusCodes.INTERNAL_SERVER_ERROR
+      );
+    }
+    throw error;
+  }
+  
+}
 async function updateCompanyStatus(id, status) {
   try {
     const company = await companyRepository.get(id);
@@ -203,5 +242,6 @@ module.exports = {
   deleteCompany,
   getCompanyById,
   updateCompanyStatus,
-  updateWalletCreditsService
+  updateWalletCreditsService,
+  getCompaniesByLocationId
 };

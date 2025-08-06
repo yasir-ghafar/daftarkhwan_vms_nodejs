@@ -82,6 +82,44 @@ async function getBookings() {
   }
 }
 
+
+async function getBookingsByMeetingRoomId() {
+  try {
+    return await Booking.findAll({
+      include: [
+        {
+          model: MeetingRoom,
+          as: 'Room',
+          attributes: ['id', 'name'],
+          include: [
+            {
+              model: Location,
+              as: 'location',
+              attributes: ['id', 'name']
+            }
+          ]
+        },
+        {
+          model: User,
+          as: 'User',
+          attributes: ['id', 'name'],
+          include: [
+            {
+              model: Company,
+              as: 'Company',
+              attributes: ['id', 'name']
+            }
+          ]
+        }
+      ]
+    });
+  } catch (error) {
+    Logger.error('Something went wrong in Booking Repo: getBookings', error);
+    throw error;
+  }
+}
+
+
 async function getBookingWithUserandRoom(bookingId, transaction) {
 
   console.log('Logged In Repo: ', bookingId);
@@ -164,5 +202,6 @@ module.exports = {
   cancelBookingById,
   getBookingWithUserandRoom,
   deleteBooking,
-  getBookingsByRoomAndDate
+  getBookingsByRoomAndDate,
+  getBookingsByMeetingRoomId
 };

@@ -4,7 +4,6 @@ const path = require('path');
 
 const { LocationController } = require('../../controllers');
 const { LocationMiddlewares, AuthMiddlewares } = require('../../middlewares');
-const { updateLocation } = require('../../controllers/location-controller');
 const router = express.Router();
 
 
@@ -22,7 +21,6 @@ const imageStorage = multer.diskStorage({
     },
     
 });
-
 
 const imageFileFilter = (req, file, cb) => {
     if (file.mimetype.startsWith("image/")) {
@@ -52,8 +50,7 @@ router.get('/:id',
     LocationController.getLocationById);
 
     /// get all locations
-router.get('/',
-    LocationController.getLocations);
+router.get('/',LocationController.getLocations);
 
     /// delete location
 router.delete('/delete/:id',
@@ -62,6 +59,7 @@ router.delete('/delete/:id',
     LocationController.deleteLocation);
 
 router.put('/:id',
+    AuthMiddlewares.getUserAndGetUserId,
     AuthMiddlewares.authorizeRoles('admin'),
     imageUpload.single("image"),
     LocationController.updateLocation);

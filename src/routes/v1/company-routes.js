@@ -9,6 +9,7 @@ router.put('/wallets/:id', CompanyController.updateWalletCredits);
 router.post('/', CompanyController.createCompany);
 
 router.get('/:id', CompanyController.getCompanyById);
+router.get('/location-id/:id', CompanyController.getCompaniesByLocationId);
 router.get('/', CompanyController.getCompanies);
 
 router.delete('/delete', CompanyController.deletCompany);
