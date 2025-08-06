@@ -19,7 +19,8 @@ async function createMeetingRoom(req, res) {
             floor: req.body.floor,
             availableDays: req.body.availableDays,
             LocationId: req.body.LocationId,
-            status: req.body.status
+            status: req.body.status,
+            amenities: req.body.amenities
         });
 
         SuccessResponse.data = room;
