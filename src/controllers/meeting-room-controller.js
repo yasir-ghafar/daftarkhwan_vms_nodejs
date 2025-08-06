@@ -18,7 +18,8 @@ async function createMeetingRoom(req, res) {
             closingTime: req.body.closingTime,
             floor: req.body.floor,
             availableDays: req.body.availableDays,
-            LocationId: req.body.LocationId
+            LocationId: req.body.LocationId,
+            status: req.body.status
         });
 
         SuccessResponse.data = room;
