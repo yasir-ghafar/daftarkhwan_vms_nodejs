@@ -9,6 +9,8 @@ const moment = require('moment');
 async function createMeetingRoom(req, res) {
     console.log("create Meeting Room method is called.");
     try {
+        openingTime = moment(req.body.openingTime, "hh:mm:ss A").format("HH:mm:ss");
+        closingTime = moment(req.body.closingTime, "hh:mm:ss A").format("HH:mm:ss");
         const room = await MeetingRoomService.createMeetingRoom({
             name: req.body.name,
             creditsPerSlot: req.body.creditsPerSlot,
@@ -112,7 +114,22 @@ async function getRoomsByLocationId(req, res) {
 async function updateMeetingRoom(req, res) {
     try {
         const id = req.params.id;
-        const meetingRoom = await MeetingRoomService.addMeetingRoomCredits(id, req.body);
+        openingTime = moment(req.body.openingTime, "hh:mm:ss A").format("HH:mm:ss");
+        closingTime = moment(req.body.closingTime, "hh:mm:ss A").format("HH:mm:ss");
+        const meetingRoom = await MeetingRoomService.addMeetingRoomCredits(id, {
+            name: req.body.name,
+            creditsPerSlot: req.body.creditsPerSlot,
+            pricePerCredit: req.body.pricePerCredit,
+            seatingCapacity: req.body.seatingCapacity,
+            image: req.body.image,
+            openingTime: openingTime,
+            closingTime: closingTime,
+            floor: req.body.floor,
+            availableDays: req.body.availableDays,
+            LocationId: req.body.locationId,
+            status: req.body.status,
+            amenities: req.body.amenities
+        });
         SuccessResponse.data = meetingRoom;
         return res
             .status(StatusCodes.OK)
