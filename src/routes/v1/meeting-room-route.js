@@ -10,7 +10,9 @@ router.get('/:id', MeetingRoomController.getRoomById);
 router.get('/', MeetingRoomController.getAllRooms);
 router.delete('/delete', MeetingRoomController.deleteMeetingRoom);
 router.put('/:id', MeetingRoomController.addCredits);
-router.put('/:id', MeetingRoomController.upda)
+router.put('/:id', MeetingRoomController.updateMeetingRoom)
+
+
 
 router.get('/location/:id', MeetingRoomController.getRoomsByLocationId);
 module.exports = router;
