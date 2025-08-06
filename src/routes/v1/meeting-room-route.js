@@ -9,8 +9,7 @@ router.post('/', MeetingRoomController.createMeetingRoom);
 router.get('/:id', MeetingRoomController.getRoomById);
 router.get('/', MeetingRoomController.getAllRooms);
 router.delete('/delete', MeetingRoomController.deleteMeetingRoom);
-router.put('/:id', MeetingRoomController.addCredits);
-router.put('/:id', MeetingRoomController.updateMeetingRoom)
+router.put('/:id', MeetingRoomController.updateMeetingRoom);
 
 
 

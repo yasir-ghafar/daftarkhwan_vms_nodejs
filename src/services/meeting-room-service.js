@@ -12,6 +12,7 @@ const meetingRoomRepository = new MeetingRoomRepository();
 const amenityRepository = new AmenityRepository();
 
 async function createMeetingRoom(data) {
+          console.log("Create Meeting Room method is called in ser.");
   try {
     const meetinRoom = await meetingRoomRepository.create(data);
     return meetinRoom;
@@ -124,33 +125,7 @@ async function getAllRooms() {
 //   }
 // }
 
-async function updateMeetingRoom(id, data) {
-  try {
-    const room = await MeetingRoomRepository.get(id);
 
-    if (!room) {
-      throw new AppError("Meeting Room not Found!", StatusCodes.NOT_FOUND);
-    }
-
-    if (Array.isArray(data.availableDays)) {
-      data.availableDays = JSON.stringify(data.availableDays);
-    }
-
-    const updatedRoom = await MeetingRoomRepository.update(id, data);
-
-    return updatedRoom;
-  } catch (error) {
-    if (error.name === "SequelizeValidationError") {
-      const messages = error.errors.map((err) => err.message);
-      throw new AppError(messages.join(", "), StatusCodes.BAD_REQUEST);
-    }
-
-    throw new AppError(
-      "Failed to update Meeting Room.",
-      StatusCodes.INTERNAL_SERVER_ERROR
-    );
-  }
-}
 
 async function deleteRoom(id) {
   try {
@@ -440,5 +415,4 @@ module.exports = {
   deleteAmenity,
   addMeetingRoomCredits,
   getRoomsByLocationId,
-  updateMeetingRoom
 };
