@@ -25,10 +25,7 @@ module.exports = (sequelize, DataTypes) => {
     floor: DataTypes.STRING,
     availableDays: DataTypes.JSON,
     LocationId: DataTypes.INTEGER,
-    meeting_room_credits: DataTypes.DECIMAL,
-    printing_credits: DataTypes.DECIMAL,
     status: DataTypes.STRING,
-    locationName: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'MeetingRoom',

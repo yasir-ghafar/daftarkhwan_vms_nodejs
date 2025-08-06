@@ -48,7 +48,7 @@ async function getAllRooms(req, res) {
     } catch(error) {
         ErrorResponse.error = error;
         return res
-            .status(error.StatusCodes)
+            .status(error.statusCode)
             .json(ErrorResponse)
     }
 }
