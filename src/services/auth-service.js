@@ -157,6 +157,28 @@ async function getAllUsers() {
   }
 }
 
+async function getAllUsersByCompanyId(company_id) {
+    try {
+        const users = await authRepository.getAll({
+            where: { company_id }
+        })
+         return users;
+    } catch (error) {
+    if (error.name == "SequelizeValidationError") {
+      let explanation = [];
+      error.errors.array.forEach((err) => {
+        explanation.push(err.message);
+      });
+      console.log(explanation);
+      throw new AppError(
+        "Unable to Fetch Location",
+        StatusCodes.INTERNAL_SERVER_ERROR
+      );
+    }
+    throw error;
+  }
+}
+
 
 function issueToken(payload) {
   return jwt.sign(payload, ServerConfig.JWT_SECRET, { expiresIn: '12h' });
@@ -172,6 +194,7 @@ module.exports = {
     checkUserAlreadyExists,
     verifyToken,
     getUserProfile,
-    getAllUsers
+    getAllUsers,
+    getAllUsersByCompanyId
     
 }

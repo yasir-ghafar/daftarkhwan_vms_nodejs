@@ -21,5 +21,11 @@ router.get('/users',
     AuthMiddlewares.authorizeRoles('admin', 'member'),
     AuthController.getUsers);
 
+router.get('/users/company/:id',
+    AuthMiddlewares.getUserAndGetUserId,
+    AuthMiddlewares.authorizeRoles('admin'),
+    AuthController.getUsersByCompany
+)
+
 
 module.exports = router;

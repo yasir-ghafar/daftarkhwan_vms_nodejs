@@ -3,6 +3,7 @@ const { AuthService } = require('../services');
 const { SuccessResponse, ErrorResponse } = require('../utils/common');
 const { StatusCodes } = require('http-status-codes');
 const { success, message } = require('../utils/common/error-response');
+const { getAllUsersByCompanyId } = require('../services/auth-service');
 
 async function registerUser(req, res) {
     console.log('in Controller..')
@@ -75,9 +76,34 @@ async function getUsers(req, res) {
 }
 
 
+async function getUsersByCompany(req, res) {
+    try {
+        const { id } = req.params;
+    if (!id) {
+        ErrorResponse.message = 'Company Id is Required!';
+        return res.status(StatusCodes.BAD_REQUEST)
+        .json({ErrorResponse});
+    }
+    
+    const users = await getAllUsersByCompanyId(id);
+    SuccessResponse.data = users;
+    SuccessResponse.message = 'Users Fetched Successfully!'
+
+    return res.status(StatusCodes.OK)
+    .json(SuccessResponse)
+    } catch(error) {
+        console.log(error);
+        ErrorResponse.error = error;
+        return res
+            .status(error.statusCode)
+            .json(ErrorResponse);
+    }
+}
+
 module.exports = {
     registerUser,
     loginUser,
-    getUsers
+    getUsers,
+    getUsersByCompany
     
 }
