@@ -29,6 +29,8 @@ router.use('/meeting-rooms',
 router.use('/bookings',
     AuthMiddlewares.getUserAndGetUserId,
     bookingRoute);
-router.use('/amenities', amenitiyRoute)
+router.use('/amenities',
+    AuthMiddlewares.getUserAndGetUserId,
+    amenitiyRoute)
 
 module.exports = router;

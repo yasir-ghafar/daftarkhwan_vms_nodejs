@@ -41,8 +41,6 @@ async function createMeetingRoom(req, res) {
     }
 }
 
-
-
 async function getAllRooms(req, res) {
     try {
         console.log('this method called.')
@@ -94,7 +92,6 @@ async function getRoomsByLocationId(req, res) {
         }
         const rooms = await MeetingRoomService.getRoomsByLocationId(id);
 
-
         SuccessResponse.data = rooms;
         SuccessResponse.message = 'Rooms Fetched Successfully!'
 
@@ -108,8 +105,6 @@ async function getRoomsByLocationId(req, res) {
             .json(ErrorResponse);
     }
 }
-
-
 
 async function updateMeetingRoom(req, res) {
     try {
@@ -143,9 +138,7 @@ async function updateMeetingRoom(req, res) {
     }
 }
 
-
 //// Amenities
-
 
 async function createAmenity(req, res) {
     try {
@@ -206,7 +199,6 @@ async function deleteAmenity(req, res) {
     });
   }
 }
-
 
 async function deleteMeetingRoom(req, res) {
     console.log("Delete Meeting Room method is called.");

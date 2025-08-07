@@ -19,6 +19,7 @@ module.exports = (sequelize, DataTypes) => {
     creditsPerSlot: DataTypes.INTEGER,
     pricePerCredit: DataTypes.DECIMAL,
     seatingCapacity: DataTypes.INTEGER,
+    duration:DataTypes.INTEGER,
     image: DataTypes.STRING,
     openingTime: DataTypes.TIME,
     closingTime: DataTypes.TIME,
