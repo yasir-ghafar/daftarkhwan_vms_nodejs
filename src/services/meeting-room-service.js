@@ -34,28 +34,53 @@ async function createMeetingRoom(data) {
 
 async function getMeetingRoomById(id) {
   try {
-    const room = await meetingRoomRepository.get(id);
+    const room = await meetingRoomRepository.getWithOptions(id, {
+      include: [
+        {
+          model: Location,
+          as: "location",
+          attributes: ["name"],
+        },
+        {
+          model: Booking,
+          required: false,
+        },
+      ],
+    });
 
     if (!room) {
       throw new AppError("Meeting Room Not Found", StatusCodes.NOT_FOUND);
     }
 
-    return room;
+    // Convert Sequelize instance to plain object
+    const roomData = room.toJSON();
+
+    // Calculate slots
+    const { availableSlots, availableSlotsCount } = calculateAvailableSlots(
+      roomData,
+      roomData.Bookings
+    );
+
+    // Remove Bookings to clean up the response
+    delete roomData.Bookings;
+
+    return {
+      ...roomData,
+      availableSlots,
+      availableSlotsCount,
+    };
   } catch (error) {
-    if (error.name == "SequelizeValidationError") {
-      let explanation = [];
-      error.errors.array.forEach((err) => {
-        explanation.push(err.message);
-      });
-      console.log(explanation);
-      throw new AppError(
-        "Unable to Fetch Meeting Room",
-        StatusCodes.INTERNAL_SERVER_ERROR
-      );
+    if (error.name === "SequelizeValidationError") {
+      const messages = error.errors.map((err) => err.message);
+      throw new AppError(messages.join(", "), StatusCodes.BAD_REQUEST);
     }
-    throw error;
+    throw new AppError(
+      "Unable to Fetch Meeting Room",
+      StatusCodes.INTERNAL_SERVER_ERROR
+    );
   }
 }
+
 
 async function getAllRooms() {
   try {
@@ -99,31 +124,6 @@ async function getAllRooms() {
     );
   }
 }
-// async function getRoomsByLocationId(locationId) {
-//   try {
-//     const rooms = await meetingRoomRepository.getAll({
-//       where: {locationId},
-//       include: [{
-//         model: Location,
-//         as: 'location',
-//         attributes:['name']
-//       }]
-//     });
-
-//     if (!rooms || rooms.length === 0) {
-//       throw new AppError('No Meeting Room found for the given Location', StatusCodes.NOT_FOUND);
-//     }
-
-//     return rooms;
-//   } catch (error) {
-//     if (error.name === 'SequelizeValidationError') {
-//       const messages = error.errors.map(err => err.message);
-//       throw new AppError(messages.join(', '), StatusCodes.BAD_REQUEST);
-//     }
-
-//     throw new AppError('Failed to fetch Meeting Rooms by Location ID', StatusCodes.INTERNAL_SERVER_ERROR);
-//   }
-// }
 
 
 
