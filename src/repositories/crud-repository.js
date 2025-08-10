@@ -95,7 +95,7 @@ class CrudRepository {
             const response = await this.model.findOne({
                 where: {
                     email: data
-                }
+                },
             });
             return response;
         } catch(error) {

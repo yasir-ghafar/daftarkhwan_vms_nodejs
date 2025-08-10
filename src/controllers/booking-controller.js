@@ -16,7 +16,7 @@ async function createBooking(req, res) {
             .json(booking);
     } catch(error) {
         return res
-            .status(StatusCodes.INTERNAL_SERVER_ERROR)
+            .status(error.statusCode)
             .json(error);
     }
 }

@@ -16,13 +16,10 @@ async function createLocation(req, res) {
 
    const { body, file } = req;
     console.log('Getting in Controller');
- // console.log('Form fields:', body); // All text fields
- // console.log('Image file:', file);
+
     try {
         console.log(req.body);
-    //    const filename = file.filename;
-    //    const imageUrl = `/public/images/${filename}`;
-    //     console.log(imageUrl);
+
         const location = await LocationService.createLocation({
             name: req.body.name,
             seatingCapacity: req.body.seatingCapacity,
@@ -35,7 +32,7 @@ async function createLocation(req, res) {
             address: req.body.address,
             state: req.body.state,
             city: req.body.city,
-            image: '',
+            image: req.body.image,
             lat: req.body.lat,
             lng: req.body.lng
         }); 

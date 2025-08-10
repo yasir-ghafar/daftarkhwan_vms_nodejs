@@ -1,12 +1,11 @@
 const { StatusCodes } = require('http-status-codes');
-const { sequelize, Wallet } = require('../models');
+const { sequelize, Wallet, Company, Location } = require('../models');
 
 const argon2 = require('argon2');
 const jwt = require('jsonwebtoken')
 
 const { AuthRepository } = require('../repositories');
 const AppError = require('../utils/error/app-error');
-const { ErrorResponse } = require('../utils/common');
 const { ServerConfig } = require('../config');
 
 
@@ -64,13 +63,65 @@ async function checkUserAlreadyExists(email) {
 }
 
 
+// async function loginUser(email, password) {
+//     try {
+//         const user = await authRepository.getByEmail({
+//                 where: {
+//                     email: email
+//                 },
+//                 include: [
+//                 {
+//                     model: Company,
+//                     as: 'company',
+//                     attributes: ['id', 'name', 'LocationId', 'locationName'],
+//                 }
+//             ]
+//             });
+
+//         if (!user) {
+//             throw new AppError('User Not Found!', 404);
+//         }
+//         console.log(user);
+//         console.log(password);
+//         console.log(user.password_hash);
+//         const isMatch = await comparePassword(user.password_hash, password);
+        
+//         if (!isMatch) {
+//             throw new AppError('Password is Incorrect', 400);
+//         }
+//         const token = issueToken({
+//             id: user.id,
+//             name: user.name,
+//             email: user.email,
+//             role: user.role
+//         })
+       
+//         console.log(token);
+
+//         const safeUser = { ...user.dataValues }
+//         delete safeUser.password_hash;
+
+//         return {...safeUser,
+//              authorization: token};
+//     } catch(error) {
+//       console.log(error);
+//         await transaction.rollback();
+//         if (error.name == 'SequelizeValidationError') {
+//             let explanation = error.errors.map(err => err.message);
+//             console.log(explanation);
+//             throw new AppError('Cannot create a new User object', StatusCodes.INTERNAL_SERVER_ERROR);
+//         }
+//         throw error;
+//     }
+// }
+
 async function loginUser(email, password) {
     try {
         const user = await authRepository.getByEmail(email);
+
         if (!user) {
             throw new AppError('User Not Found!', 404);
         }
-        
         
         console.log(password);
         console.log(user.password_hash);
@@ -94,6 +145,7 @@ async function loginUser(email, password) {
         return {...safeUser,
              authorization: token};
     } catch(error) {
+      console.log(error);
         await transaction.rollback();
         if (error.name == 'SequelizeValidationError') {
             let explanation = error.errors.map(err => err.message);
@@ -109,6 +161,8 @@ async function hashPassword(password) {
 }
 
 async function comparePassword(hashedPassword, password) {
+    console.log("Passowrd Hashed", hashedPassword)
+    console.log("Passowrd", password)
     try{
         return await argon2.verify(hashedPassword, password);
     } catch(error) {

@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       User.hasOne(models.Wallet, { foreignKey: 'user_id' });
       User.hasMany(models.Booking, { foreignKey: 'user_id' });
-      User.belongsTo(models.Company, { foreignKey: 'company_id' });
+      User.belongsTo(models.Company, { foreignKey: 'company_id', as: 'company' });
     }
   }
   User.init({
