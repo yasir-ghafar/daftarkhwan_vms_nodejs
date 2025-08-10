@@ -52,9 +52,7 @@ async function updateLocation(req, res) {
   const { id } = req.params;
   const { body, file } = req;
    try {
-    // Optional image handling
-    // const filename = file?.filename;
-    // const imageUrl = filename ? `/public/images/${filename}` : undefined;
+
 
     const updatedData = {
       name: body.name,
@@ -66,6 +64,7 @@ async function updateLocation(req, res) {
       businessEndTime: body.businessEndTime,
       legalBusinessName: body.legalBusinessName,
       address: body.address,
+      image: body.image,
       city: body.city,
       status: body.status, // assuming 'status' replaces 'state'
       // image: imageUrl || '', // uncomment when file upload is needed
