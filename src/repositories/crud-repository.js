@@ -96,6 +96,13 @@ class CrudRepository {
                 where: {
                     email: data
                 },
+                include: [
+                    {
+                        model: this.model.sequelize.models.Company,
+                        as: 'company',
+                        attributes: ['id', 'name', 'LocationId', 'locationName'],
+                    }
+                ]
             });
             return response;
         } catch(error) {
