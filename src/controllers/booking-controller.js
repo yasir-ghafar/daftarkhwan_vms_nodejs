@@ -11,6 +11,8 @@ async function createBooking(req, res) {
         const booking = await bookingService.bookMeetingRoom(
             { date, startTime, endTime, location_id, room_id, company_id, user_id, status }
         );
+        SuccessResponse.data = booking;
+        SuccessResponse.message = "Booking Created Successfully!"
         return res
             .status(StatusCodes.CREATED)
             .json(booking);
