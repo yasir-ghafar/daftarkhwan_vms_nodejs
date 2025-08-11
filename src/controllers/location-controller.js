@@ -10,8 +10,6 @@ const { success } = require('../utils/common/error-response');
  * @param {*} res 
  */
 
-
-
 async function createLocation(req, res) {
 
    const { body, file } = req;

@@ -26,8 +26,6 @@ async function createMeetingRoom(req, res) {
             amenities: req.body.amenities
         });
 
-        
-
          SuccessResponse.data = room;
         return res
                 .status(StatusCodes.CREATED)

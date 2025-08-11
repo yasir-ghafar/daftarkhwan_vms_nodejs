@@ -81,7 +81,6 @@ async function getMeetingRoomById(id) {
   }
 }
 
-
 async function getAllRooms() {
   try {
     const rooms = await meetingRoomRepository.getAll({
