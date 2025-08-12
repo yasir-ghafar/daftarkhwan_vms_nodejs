@@ -14,6 +14,7 @@ module.exports = (sequelize, DataTypes) => {
       Booking.belongsTo(models.MeetingRoom, { foreignKey: 'room_id', as: 'Room' })
     }
   }
+
   Booking.init({
     date: DataTypes.DATEONLY,
     startTime: DataTypes.TIME,

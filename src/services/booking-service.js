@@ -14,54 +14,23 @@ function validateSlotTiming(startTime, endTime) {
   const start = new Date(startTime);
   const end = new Date(endTime);
 
-  // Ensure valid dates
   if (isNaN(start) || isNaN(end)) {
     throw new Error("Invalid start or end time");
   }
 
-  // Ensure both times are on the same day
   const isSameDay =
-    start.getUTCFullYear() === end.getUTCFullYear() &&
-    start.getUTCMonth() === end.getUTCMonth() &&
-    start.getUTCDate() === end.getUTCDate();
+    start.getFullYear() === end.getFullYear() &&
+    start.getMonth() === end.getMonth() &&
+    start.getDate() === end.getDate();
 
   if (!isSameDay) {
     throw new Error("Start and end time must be on the same date");
   }
 
-  const opening = new Date(
-    Date.UTC(
-      start.getUTCFullYear(),
-      start.getUTCMonth(),
-      start.getUTCDate(),
-      9,
-      0,
-      0,
-      0
-    )
-  );
+  const opening = new Date(start.getFullYear(), start.getMonth(), start.getDate(), 9, 0, 0);
+  const closing = new Date(start.getFullYear(), start.getMonth(), start.getDate(), 21, 0, 0);
 
-  const closing = new Date(
-    Date.UTC(
-      start.getUTCFullYear(),
-      start.getUTCMonth(),
-      start.getUTCDate(),
-      21,
-      0,
-      0,
-      0
-    )
-  );
-
-  const isValid = start >= opening && end <= closing;
-
-  console.log("Opening:", opening.toISOString());
-  console.log("Closing:", closing.toISOString());
-  console.log("Start:", start.toISOString());
-  console.log("End:", end.toISOString());
-  console.log("Is Valid", isValid);
-
-  return isValid;
+  return start >= opening && end <= closing;
 }
 
 async function bookMeetingRoom({
@@ -72,7 +41,9 @@ async function bookMeetingRoom({
   room_id,
   company_id,
   user_id,
-  status
+  status,
+  title,
+  description
 }) {
   console.log({ user_id, room_id });
   const transaction = await sequelize.transaction();
@@ -153,7 +124,9 @@ async function bookMeetingRoom({
         company_id: company_id,
         user_id: user_id,
         total_credits: cost,
-        status: status
+        status: status,
+        title: title,
+        description: description
       },
       transaction
     );
@@ -170,6 +143,26 @@ async function bookMeetingRoom({
 async function getAllBookings() {
     try {
         const bookings = await bookingRepo.getBookings();
+        return bookings
+    } catch(error) {
+        if (error.name == "SequelizeValidationError") {
+      let explanation = [];
+      error.errors.array.forEach((err) => {
+        explanation.push(err.message);
+      });
+      console.log(explanation);
+      throw new AppError(
+        "Cannot create a new Airplane object",
+        StatusCodes.INTERNAL_SERVER_ERROR
+      );
+    }
+    throw error;
+    }
+}
+
+async function getAllBookingsByUserId(userId) {
+    try {
+        const bookings = await bookingRepo.getBookingsByUserId(userId);
         return bookings
     } catch(error) {
         if (error.name == "SequelizeValidationError") {
@@ -252,25 +245,25 @@ async function cancelBooking(bookingId, userId) {
       );
     }
 
-    // Get user's wallet
-    // const user = await userRepo.getUserWithWallet(userId, transaction);
-    // if (!user || !user.Wallet) {
-    //   throw new AppError('User or Wallet not found', StatusCodes.NOT_FOUND);
-    // }
+    //Get user's wallet
+    const user = await userRepo.getUserWithWallet(userId, transaction);
+    if (!user || !user.Wallet) {
+      throw new AppError('User or Wallet not found', StatusCodes.NOT_FOUND);
+    }
 
-    // const refundAmount = booking.total_credits;
+    const refundAmount = booking.total_credits;
 
-    // await walletRepo.updateWalletBalance(user.Wallet, refundAmount, transaction);
+    await walletRepo.updateWalletBalance(user.Wallet, refundAmount, transaction);
 
-    // log refund transaction
+    //log refund transaction
 
-    // await walletRepo.logWalletTransaction(
-    //   user.Wallet.id,
-    //   'credit',
-    //   refundAmount,
-    //   `Refund for canceled booking ID ${bookingId}`,
-    //   transaction
-    // );
+    await walletRepo.logWalletTransaction(
+      user.Wallet.id,
+      'credit',
+      refundAmount,
+      `Refund for canceled booking ID ${bookingId}`,
+      transaction
+    );
 
     await bookingRepo.cancelBookingById(bookingId, transaction);
 
@@ -312,4 +305,5 @@ module.exports = {
   getAllBookings,
   cancelBooking,
   getBookingsByRoomIdAndDate,
+  getAllBookingsByUserId,
 };

@@ -5,11 +5,11 @@ const { SuccessResponse } = require('../utils/common');
 
 
 async function createBooking(req, res) {
-    const { date, startTime, endTime, location_id, room_id, company_id, user_id, status } = req.body;
-
+    const { date, startTime, endTime, location_id, room_id, company_id, user_id, status, title, description } = req.body;
+    
     try {
         const booking = await bookingService.bookMeetingRoom(
-            { date, startTime, endTime, location_id, room_id, company_id, user_id, status }
+            { date, startTime, endTime, location_id, room_id, company_id, user_id, status, title, description }
         );
         SuccessResponse.data = booking;
         SuccessResponse.message = "Booking Created Successfully!"
@@ -59,6 +59,25 @@ async function getBookings(req, res) {
     }
 }
 
+async function getBookingsByUserId(req, res) {
+    try {
+        const { id } = req.params;
+        console.log(id);
+
+        const bookings = await bookingService.getAllBookingsByUserId(id);
+        SuccessResponse.data = bookings;
+        return res
+            .status(StatusCodes.OK)
+            .json(SuccessResponse);
+
+    } catch(error) {
+        console.log(`Error: ${error}`);
+        ErrorResponse.error = error;
+        return res
+            .status(error.statusCode)
+            .json(ErrorResponse);
+    }
+}
 
 async function bookigsByRoomAndDate(req, res) {
     console.log('getting in controller');
@@ -88,5 +107,6 @@ module.exports = {
     createBooking,
     getBookings,
     cancelBooking,
-    bookigsByRoomAndDate
+    bookigsByRoomAndDate,
+    getBookingsByUserId
 }

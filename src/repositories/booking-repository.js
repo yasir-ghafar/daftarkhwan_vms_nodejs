@@ -1,8 +1,8 @@
 const { sequelize , Booking, MeetingRoom, Location, User, Company } = require('../models');
 const { Logger } = require('../config');
-const { Op } = require('sequelize');
+const { Op, where } = require('sequelize');
 
-async function createBooking({ date, startTime, endTime, slots, location_id, room_id, company_id, user_id, total_credits, status }, transaction) {
+async function createBooking({ date, startTime, endTime, slots, location_id, room_id, company_id, user_id, total_credits, status, title, description }, transaction) {
   console.log("Booking Status is:", status);  
   return await Booking.create({
       user_id: user_id,
@@ -15,7 +15,9 @@ async function createBooking({ date, startTime, endTime, slots, location_id, roo
       startTime: startTime,
       endTime: endTime,
       total_credits: total_credits,
-      status: status
+      status: status,
+      title: title,
+      description: description
     }, { transaction });
 }
 
@@ -76,6 +78,18 @@ async function getBookings() {
         }
       ]
     });
+  } catch (error) {
+    Logger.error('Something went wrong in Booking Repo: getBookings', error);
+    throw error;
+  }
+}
+
+async function getBookingsByUserId(userId) {
+  try {
+    console.log("User Id in repo:", userId)
+    return await Booking.findAll({
+    where: {user_id: userId },
+  });
   } catch (error) {
     Logger.error('Something went wrong in Booking Repo: getBookings', error);
     throw error;
@@ -203,5 +217,6 @@ module.exports = {
   getBookingWithUserandRoom,
   deleteBooking,
   getBookingsByRoomAndDate,
-  getBookingsByMeetingRoomId
+  getBookingsByMeetingRoomId,
+  getBookingsByUserId
 };

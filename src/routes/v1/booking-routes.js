@@ -3,6 +3,9 @@ const { BookingController } = require('../../controllers');
 
 const router = express.Router();
 
+router.get('/user/:id', BookingController.getBookingsByUserId);
+
+
 router.get('/:id', BookingController.getBookings);
 router.get('/', BookingController.getBookings);
 
