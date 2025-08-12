@@ -66,6 +66,7 @@ async function getBookingsByUserId(req, res) {
 
         const bookings = await bookingService.getAllBookingsByUserId(id);
         SuccessResponse.data = bookings;
+        SuccessResponse.message = 'Bookings Fetched Successfully'
         return res
             .status(StatusCodes.OK)
             .json(SuccessResponse);

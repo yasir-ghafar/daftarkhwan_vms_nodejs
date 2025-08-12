@@ -89,6 +89,32 @@ async function getBookingsByUserId(userId) {
     console.log("User Id in repo:", userId)
     return await Booking.findAll({
     where: {user_id: userId },
+    include: [
+      {
+        model: MeetingRoom,
+        as: 'Room',
+        attributes: ['id', 'name'],
+        include: [
+          {
+            model: Location,
+            as: 'location',
+            attributes: ['id', 'name'],
+          }
+        ]
+      },
+      {
+        model: User,
+        as: 'User',
+        attributes: ['id', 'name'],
+        include: [
+          {
+            model: Company,
+            as: 'Company',
+            attributes: ['id', 'name'],
+          }
+        ]
+      }
+    ]
   });
   } catch (error) {
     Logger.error('Something went wrong in Booking Repo: getBookings', error);
