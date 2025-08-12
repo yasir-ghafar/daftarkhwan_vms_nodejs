@@ -15,7 +15,7 @@ async function createBooking(req, res) {
         SuccessResponse.message = "Booking Created Successfully!"
         return res
             .status(StatusCodes.CREATED)
-            .json(booking);
+            .json(SuccessResponse);
     } catch(error) {
         return res
             .status(error.statusCode)
