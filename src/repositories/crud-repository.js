@@ -100,7 +100,12 @@ class CrudRepository {
                     {
                         model: this.model.sequelize.models.Company,
                         attributes: ['id', 'name', 'LocationId', 'locationName'],
-                    }
+                    },
+                    {
+                        model: this.model.sequelize.models.Wallet,
+                        attributes: ['id', 'meeting_room_credits', 'printing_credits'],
+                    },
+                  
                 ]
             });
             return response;

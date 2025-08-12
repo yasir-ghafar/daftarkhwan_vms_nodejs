@@ -300,6 +300,8 @@ async function getBookingsByRoomIdAndDate(roomId, date) {
     throw error;
     }
 }
+
+
 module.exports = {
   bookMeetingRoom,
   getAllBookings,
