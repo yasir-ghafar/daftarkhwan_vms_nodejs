@@ -70,10 +70,13 @@ async function getMeetingRoomById(id) {
       availableSlotsCount,
     };
   } catch (error) {
+    //console.log("Error in service: ", error);
+    console.log("Error name in service: ",error.name);
     if (error.name === "SequelizeValidationError") {
       const messages = error.errors.map((err) => err.message);
       throw new AppError(messages.join(", "), StatusCodes.BAD_REQUEST);
     }
+
     throw new AppError(
       "Unable to Fetch Meeting Room",
       StatusCodes.INTERNAL_SERVER_ERROR

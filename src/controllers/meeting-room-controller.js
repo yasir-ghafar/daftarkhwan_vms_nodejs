@@ -70,7 +70,7 @@ async function getRoomById(req, res) {
         SuccessResponse.data = room;
 
         return res.status(StatusCodes.OK)
-            .json({SuccessResponse})
+            .json(SuccessResponse)
     } catch(error) {
         console.log(error);
         ErrorResponse.error = error;
