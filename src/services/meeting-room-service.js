@@ -4,7 +4,7 @@ const AppError = require("../utils/error/app-error");
 const { MeetingRoom } = require("../models");
 const { log } = require("winston");
 
-const { Location, Booking } = require("../models");
+const { Location, Booking, User, Company } = require("../models");
 const { Op } = require("sequelize");
 const moment = require("moment");
 
@@ -312,6 +312,74 @@ async function getRoomsByLocationId(locationId) {
 }
 
 
+async function getMeetingRoomWithStatus(id) {
+  try {
+    const room = await meetingRoomRepository.getWithOptions(id, {
+      include: [
+        {
+          model: Location,
+          as: "location",
+          attributes: ["id", "name"], // keep id for consistency
+        },
+        {
+          model: Booking,
+          as: "Bookings",
+          required: false,
+          include: [
+            {
+              model: User,
+              as: "User",
+              attributes: ["id", "name"],
+              include: [
+                {
+                  model: Company,
+                  as: "Company",
+                  attributes: ["id", "name"],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    if (!room)
+      throw new AppError("Meeting Room Not Found", StatusCodes.NOT_FOUND);
+
+    const roomData = room.toJSON();
+    const today = moment().format("YYYY-MM-DD");
+
+    // Filter only today's bookings
+    const bookingsToday = roomData.Bookings.filter((b) => b.date === today);
+
+    // Calculate availability
+    const { availableSlots, availableSlotsCount } = calculateAvailableSlots(
+      roomData,
+      bookingsToday
+    );
+
+    delete roomData.Bookings;
+
+    return {
+      ...roomData,
+      bookingsToday, // explicit
+      availableSlots,
+      availableSlotsCount,
+    };
+  } catch (error) {
+    //console.log("Error in service: ", error);
+    console.log("Error name in service: ",error.name);
+    if (error.name === "SequelizeValidationError") {
+      const messages = error.errors.map((err) => err.message);
+      throw new AppError(messages.join(", "), StatusCodes.BAD_REQUEST);
+    }
+
+    throw new AppError(
+      "Unable to Fetch Meeting Room",
+      StatusCodes.INTERNAL_SERVER_ERROR
+    );
+  }
+}
 
 
 
@@ -376,4 +444,5 @@ module.exports = {
   deleteAmenity,
   addMeetingRoomCredits,
   getRoomsByLocationId,
+  getMeetingRoomWithStatus
 };

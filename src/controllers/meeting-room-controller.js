@@ -80,6 +80,31 @@ async function getRoomById(req, res) {
     }
 }
 
+
+async function getMeetingRoomStatus(req, res) {
+    try {
+        const {id} = req.params;
+        if (!id) {
+            ErrorResponse.message = 'Room Id is Required!';
+            return res.status(StatusCodes.BAD_REQUEST)
+                .json({ErrorResponse});
+        }
+
+        const room = await MeetingRoomService.getMeetingRoomWithStatus(id);
+
+        SuccessResponse.data = room;
+
+        return res.status(StatusCodes.OK)
+            .json(SuccessResponse)
+    } catch(error) {
+        console.log(error);
+        ErrorResponse.error = error;
+        return res
+            .status(error.statusCode)
+            .json(ErrorResponse);
+    }
+}
+
 async function getRoomsByLocationId(req, res) {
     try {
         const {id} = req.params;
@@ -231,4 +256,5 @@ getAllAmenities,
 deleteAmenity,
 updateMeetingRoom,
 getRoomsByLocationId,
+getMeetingRoomStatus
 }
