@@ -276,29 +276,39 @@ async function cancelBooking(bookingId, userId) {
 }
 
 async function getBookingsByRoomIdAndDate(roomId, date) {
-
   console.log('getting in service');
+
   if (!roomId || !date) {
-    throw new AppError('room_id and date are required', StatusCodes.BAD_REQUEST);
+    throw new AppError(
+      'room_id and date are required',
+      StatusCodes.BAD_REQUEST
+    );
   }
 
   try {
-    const bookings =  await bookingRepo.getBookingsByRoomAndDate(roomId, date);
-    return bookings;
-  } catch(error) {
-        if (error.name == "SequelizeValidationError") {
-      let explanation = [];
-      error.errors.array.forEach((err) => {
-        explanation.push(err.message);
-      });
-      console.log(explanation);
+    const bookings = await bookingRepo.getBookingsByRoomAndDate(roomId, date);
+
+    if (!bookings || bookings.length === 0) {
       throw new AppError(
-        "Cannot create a new Airplane object",
-        StatusCodes.INTERNAL_SERVER_ERROR
+        'No booking found for today',
+        StatusCodes.NOT_FOUND
       );
     }
-    throw error;
+
+    return bookings;
+  } catch (error) {
+    if (error.name === "SequelizeValidationError") {
+      const explanation = error.errors.map(err => err.message);
+
+      throw new AppError(
+        `Validation error: ${explanation.join(', ')}`,
+        StatusCodes.BAD_REQUEST
+      );
     }
+
+    // For any other errors, just rethrow
+    throw error;
+  }
 }
 
 

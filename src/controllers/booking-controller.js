@@ -1,6 +1,6 @@
 const { StatusCodes } = require('http-status-codes');
 const bookingService = require('../services/booking-service');
-const { SuccessResponse } = require('../utils/common');
+const { SuccessResponse, ErrorResponse } = require('../utils/common');
 
 
 
@@ -43,6 +43,7 @@ async function cancelBooking(req, res) {
 }
 
 async function getBookings(req, res) {
+     console.log('getting in controller: getBookings');
     try {
         const bookings = await bookingService.getAllBookings();
         SuccessResponse.data = bookings;
@@ -82,7 +83,7 @@ async function getBookingsByUserId(req, res) {
 
 async function bookigsByRoomAndDate(req, res) {
     console.log('getting in controller');
-    const { room_id, date } = req.query;
+    const { room_id, date } = req.body;
 
       console.log("Room Id", room_id);
       console.log("Date", date);
@@ -95,8 +96,8 @@ async function bookigsByRoomAndDate(req, res) {
         return res.status(StatusCodes.OK)
             .json(SuccessResponse);
     } catch(error) {
-        console.log(`Error: ${error}`);
-        ErrorResponse.error = error;
+        //console.log(`Error: ${error}`);
+        ErrorResponse.error = error.message;
         return res
             .status(error.statusCode)
             .json(ErrorResponse);
