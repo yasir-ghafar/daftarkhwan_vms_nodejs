@@ -83,7 +83,7 @@ async function getBookingsByUserId(req, res) {
 
 async function bookigsByRoomAndDate(req, res) {
     console.log('getting in controller');
-    const { room_id, date } = req.body;
+    const { room_id, date } = req.query;
 
       console.log("Room Id", room_id);
       console.log("Date", date);
