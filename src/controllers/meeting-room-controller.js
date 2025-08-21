@@ -81,6 +81,34 @@ async function getRoomById(req, res) {
 }
 
 
+async function getRoomAvailabilityByDate(req, res) {
+    try {
+        const { id } = req.params;
+        const { date } = req.query;
+
+        if (!id) {
+            ErrorResponse.message = "Room Id is Required!";
+            return res.status(StatusCodes.BAD_REQUEST).json({ ErrorResponse });
+        }
+
+        if (!date) {
+            ErrorResponse.message = "Date is Required! (format: YYYY-MM-DD)";
+            return res.status(StatusCodes.BAD_REQUEST).json({ ErrorResponse });
+        }
+
+        const roomAvailability = await MeetingRoomService.getMeetingRoomAvailabilityByDate(id, date);
+
+        SuccessResponse.data = roomAvailability;
+
+        return res.status(StatusCodes.OK).json(SuccessResponse);
+    } catch (error) {
+        console.log(error);
+        ErrorResponse.error = error;
+        return res.status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR).json(ErrorResponse);
+    }
+}
+
+
 async function getMeetingRoomStatus(req, res) {
     try {
         const {id} = req.params;
@@ -256,5 +284,6 @@ getAllAmenities,
 deleteAmenity,
 updateMeetingRoom,
 getRoomsByLocationId,
-getMeetingRoomStatus
+getMeetingRoomStatus,
+getRoomAvailabilityByDate
 }

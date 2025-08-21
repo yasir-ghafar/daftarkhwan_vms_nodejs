@@ -383,6 +383,110 @@ async function getMeetingRoomWithStatus(id) {
 
 
 
+// Method ot get meeting room availability by date 
+async function getMeetingRoomAvailabilityByDate(id, date) {
+  try {
+    const room = await meetingRoomRepository.getWithOptions(id, {
+      include: [
+        {
+          model: Location,
+          as: "location",
+          attributes: ["name"],
+        },
+        {
+          model: Booking,
+          required: false,
+          where: { date }, // <-- Filter bookings only for requested date
+        },
+      ],
+    });
+
+    if (!room) {
+      throw new AppError("Meeting Room Not Found", StatusCodes.NOT_FOUND);
+    }
+
+    const roomData = room.toJSON();
+
+    const { availableSlots, availableSlotsCount } = calculateAvailableSlotsByDate(
+      roomData,
+      roomData.Bookings,
+      date // <-- pass date into calculator
+    );
+
+    delete roomData.Bookings;
+
+    return {
+      ...roomData,
+      date,
+      availableSlots,
+      availableSlotsCount,
+    };
+  } catch (error) {
+    console.log("In service: ", error);
+
+    if (error.name === "SequelizeValidationError") {
+      const messages = error.errors.map((err) => err.message);
+      throw new AppError(messages.join(", "), StatusCodes.BAD_REQUEST);
+    }
+
+    throw new AppError("Unable to Fetch Meeting Room Availability", StatusCodes.INTERNAL_SERVER_ERROR);
+  }
+}
+
+
+function calculateAvailableSlotsByDate(room, bookings = [], date = null) {
+  // If no date is provided, default to today
+  const targetDate = date 
+    ? moment(date, "YYYY-MM-DD").format("YYYY-MM-DD")
+    : moment().format("YYYY-MM-DD");
+
+  console.log(`Target date:`, targetDate);
+
+  // Combine target date with opening and closing times
+  const openingTime = moment(`${targetDate} ${room.openingTime}`, "YYYY-MM-DD hh:mm:ss A");
+  const closingTime = moment(`${targetDate} ${room.closingTime}`, "YYYY-MM-DD hh:mm:ss A");
+
+  if (!openingTime.isValid() || !closingTime.isValid() || openingTime.isSameOrAfter(closingTime)) {
+    return { availableSlots: [], availableSlotsCount: 0 };
+  }
+
+  const SLOT_DURATION_MINUTES = room.duration;
+  const slots = [];
+
+  let slotStart = openingTime.clone();
+
+  while (slotStart.clone().add(SLOT_DURATION_MINUTES, "minutes").isSameOrBefore(closingTime)) {
+    const slotEnd = slotStart.clone().add(SLOT_DURATION_MINUTES, "minutes");
+    slots.push({
+      start: slotStart.format("HH:mm"),
+      end: slotEnd.format("HH:mm"),
+    });
+    slotStart = slotEnd;
+  }
+
+  // Filter bookings for the given date
+  const bookingsForDate = bookings.filter(b => b.date === targetDate);
+
+  const availableSlots = slots.filter(slot => {
+    const slotStartTime = moment(`${targetDate} ${slot.start}`, "YYYY-MM-DD HH:mm");
+    const slotEndTime = moment(`${targetDate} ${slot.end}`, "YYYY-MM-DD HH:mm");
+
+    return !bookingsForDate.some(booking => {
+      const bookingStart = moment(`${targetDate} ${booking.startTime}`, "YYYY-MM-DD HH:mm");
+      const bookingEnd = moment(`${targetDate} ${booking.endTime}`, "YYYY-MM-DD HH:mm");
+
+      // Check for overlap
+      return slotStartTime.isBefore(bookingEnd) && slotEndTime.isAfter(bookingStart);
+    });
+  });
+
+  return {
+    availableSlots,
+    availableSlotsCount: availableSlots.length,
+  };
+}
+
+
 function calculateAvailableSlots(room, bookings = []) {
   const today = moment().format("YYYY-MM-DD");
   console.log(`Today date:`, today);
@@ -444,5 +548,6 @@ module.exports = {
   deleteAmenity,
   addMeetingRoomCredits,
   getRoomsByLocationId,
-  getMeetingRoomWithStatus
+  getMeetingRoomWithStatus,
+  getMeetingRoomAvailabilityByDate
 };

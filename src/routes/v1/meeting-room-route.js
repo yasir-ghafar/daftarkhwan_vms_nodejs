@@ -14,6 +14,9 @@ router.post('/',
 
 router.get('/status/:id', MeetingRoomController.getMeetingRoomStatus);
 
+
+router.get("/:id/availability", MeetingRoomController.getRoomAvailabilityByDate);
+
 router.get('/:id', MeetingRoomController.getRoomById);
 router.get('/', MeetingRoomController.getAllRooms);
 router.delete('/delete',

@@ -26,7 +26,6 @@ router.use('/members',
 router.use('/meeting-rooms',
     roomRoutes);
 router.use('/bookings',
-    AuthMiddlewares.getUserAndGetUserId,
     bookingRoute);
 router.use('/amenities',
     AuthMiddlewares.getUserAndGetUserId,
