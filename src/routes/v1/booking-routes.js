@@ -27,7 +27,7 @@ router.post('/',
 
 
 router.post('/cancel/:id',
-    AuthMiddlewares.authorizeRoles('admin'),
+    AuthMiddlewares.authorizeRoles('admin', 'member'),
     AuthMiddlewares.getUserAndGetUserId,
     BookingController.cancelBooking);
 
