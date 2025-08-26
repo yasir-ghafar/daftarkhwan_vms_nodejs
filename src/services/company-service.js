@@ -127,7 +127,7 @@ async function getCompanyById(id) {
       });
       console.log(explanation);
       throw new AppError(
-        "Unable to Fetch Locations",
+        "Unable to Fetch Companies",
         StatusCodes.INTERNAL_SERVER_ERROR
       );
     }
@@ -165,7 +165,7 @@ async function getCompaniesByLocationId(id) {
       });
       console.log(explanation);
       throw new AppError(
-        "Unable to Fetch Locations",
+        "Unable to Fetch Companies",
         StatusCodes.INTERNAL_SERVER_ERROR
       );
     }
@@ -236,6 +236,34 @@ async function updateWalletCreditsService(walletId, updates) {
     });
 }
 
+
+async function getWalletTransactionsById(walletId) {
+
+  try {
+      return await sequelize.transaction(async (transaction) => {
+        // Update wallet credits
+        const transactions = await walletRepository.getWalletTransactions(walletId, transaction);
+
+        return transactions;
+    });
+  } catch (error) {
+    if (error.name == "SequelizeValidationError") {
+      let explanation = [];
+      error.errors.array.forEach((err) => {
+        explanation.push(err.message);
+      });
+      console.log(explanation);
+      throw new AppError(
+        "Unable to Fetch Companies",
+        StatusCodes.INTERNAL_SERVER_ERROR
+      );
+    }
+    throw error;
+  } 
+  
+}
+
+
 module.exports = {
   createCompany,
   getAllCompanies,
@@ -243,5 +271,6 @@ module.exports = {
   getCompanyById,
   updateCompanyStatus,
   updateWalletCreditsService,
-  getCompaniesByLocationId
+  getCompaniesByLocationId,
+  getWalletTransactionsById
 };

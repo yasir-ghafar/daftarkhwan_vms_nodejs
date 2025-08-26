@@ -24,11 +24,12 @@ async function createBooking(req, res) {
 }
 
 async function cancelBooking(req, res) {
+    console.log("userId in controller",req.userId);
     const { id } = req.params;
-    const { user_id } = req.body;
+    const userId = req.userId;
 
     try {
-        const result = await bookingService.cancelBooking(id, user_id);
+        const result = await bookingService.cancelBooking(id, userId);
         SuccessResponse.message = result;
         res
             .status(StatusCodes.OK)

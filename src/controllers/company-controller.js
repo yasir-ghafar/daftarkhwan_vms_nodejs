@@ -175,6 +175,10 @@ async function updateCompanyStatus(req, res) {
 }
 
 
+/// methods for wallet are created here
+/// because in future their might b need to move wallet apis here
+
+
 /// Update Wallet
 async function updateWalletCredits(req, res) {
 
@@ -203,6 +207,28 @@ async function updateWalletCredits(req, res) {
     }
 }
 
+async function getWalletTransactions(req, res) {
+    console.log('getting here');
+    const walletId = req.params.id;
+    try {
+        const transactions = await CompanyService.getWalletTransactionsById(walletId);
+        
+        SuccessResponse.data = transactions;
+        SuccessResponse.message = 'Transactions Fetched Successfully';
+
+        return res.status(StatusCodes.OK)
+            .json(SuccessResponse);
+    } catch(error) {
+        return res
+            .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+            .json({
+                success: false,
+                message: error.message || 'Something went wrong while Fetching Transactions.'
+            });
+    }
+
+}
+
 module.exports = {
     createCompany,
     getCompanies,
@@ -210,6 +236,7 @@ module.exports = {
     deletCompany,
     updateCompanyStatus,
     updateWalletCredits,
-    getCompaniesByLocationId
+    getCompaniesByLocationId,
+    getWalletTransactions
 
 }

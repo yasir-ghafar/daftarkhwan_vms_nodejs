@@ -36,8 +36,21 @@ async function updatewalletCredits(walletId, updates, transaction) {
     return wallet;
 }
 
+
+async function getWalletTransactions(walletId, ) {
+    
+
+    const transactions = await WalletTransaction.findAll({
+        where: { wallet_id: walletId },
+        order: [['createdAt', 'DESC']], // default: latest first
+    });
+
+    return transactions;
+}
+
 module.exports = {
     updateWalletBalance,
     logWalletTransaction,
-    updatewalletCredits
+    updatewalletCredits,
+    getWalletTransactions
 }
