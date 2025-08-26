@@ -114,7 +114,8 @@ async function getBookingsByUserId(userId) {
           }
         ]
       }
-    ]
+    ],
+    order: [['createdAt', 'DESC']] // latest bookings first
   });
   } catch (error) {
     Logger.error('Something went wrong in Booking Repo: getBookings', error);
@@ -164,7 +165,10 @@ async function getBookingWithUserandRoom(bookingId, transaction) {
 
   console.log('Logged In Repo: ', bookingId);
   return await Booking.findOne({
-    where: {id: bookingId },
+    where: {
+      id: bookingId,
+      status: 'confirmed'
+       },
     include: [
       {
         model: MeetingRoom,
