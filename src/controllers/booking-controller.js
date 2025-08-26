@@ -35,11 +35,11 @@ async function cancelBooking(req, res) {
             .status(StatusCodes.OK)
             .json(SuccessResponse);
     } catch(error) {
+        ErrorResponse.error = error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR
+        ErrorResponse.message = error.message || 'Something went wrong while cancelling the booking.'
         return res
       .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({
-        message: error.message || 'Something went wrong while cancelling the booking.'
-      });
+      .json(ErrorResponse);
     }
 }
 
