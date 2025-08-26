@@ -191,8 +191,13 @@ async function cancelBooking(bookingId, userId) {
       bookingId,
       transaction
     );
+   
     if (!booking) {
       throw new AppError("Booking not found", StatusCodes.NOT_FOUND);
+    }
+
+    if (booking.status == 'cancelled') {
+      throw new AppError("Booking is Already Cancelled.", StatusCodes.NOT_FOUND);
     }
 
     // prevent users to cancell booking they don't own
@@ -246,6 +251,8 @@ async function cancelBooking(bookingId, userId) {
     }
 
     //Get user's wallet
+    console.log("In Service User Id:", userId);
+    
     const user = await userRepo.getUserWithWallet(userId, transaction);
     if (!user || !user.Wallet) {
       throw new AppError('User or Wallet not found', StatusCodes.NOT_FOUND);
@@ -268,7 +275,7 @@ async function cancelBooking(bookingId, userId) {
     await bookingRepo.cancelBookingById(bookingId, transaction);
 
     await transaction.commit();
-    return { message: "Booking canceled and wallet refunded successfully." };
+    return "Booking canceled and wallet refunded successfully.";
   } catch (error) {
     await transaction.rollback();
     throw error;
