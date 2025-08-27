@@ -88,7 +88,10 @@ async function getBookingsByUserId(userId) {
   try {
     console.log("User Id in repo:", userId)
     return await Booking.findAll({
-    where: {user_id: userId },
+    where: {
+      user_id: userId,
+      status: 'confirmed'
+    },
     include: [
       {
         model: MeetingRoom,
