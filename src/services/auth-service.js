@@ -121,7 +121,8 @@ async function loginUser(email, password) {
     const user = await authRepository.getByEmail(email);
 
     if (!user) {
-      throw new AppError("User Not Found!", 404);
+      throw new AppError("User Not Found!",
+         StatusCodes.NOT_FOUND);
     }
 
     console.log(password);
@@ -129,7 +130,8 @@ async function loginUser(email, password) {
     const isMatch = await comparePassword(user.password_hash, password);
 
     if (!isMatch) {
-      throw new AppError("Password is Incorrect", 400);
+      throw new AppError("Incorrect Password!",
+         StatusCodes.BAD_REQUEST);
     }
     const token = issueToken({
       id: user.id,
@@ -146,12 +148,12 @@ async function loginUser(email, password) {
     return { ...safeUser, authorization: token };
   } catch (error) {
     console.log(error);
-    await transaction.rollback();
+    //await transaction.rollback();
     if (error.name == "SequelizeValidationError") {
       let explanation = error.errors.map((err) => err.message);
       console.log(explanation);
       throw new AppError(
-        "Cannot create a new User object",
+        "Unable to Login, Something went wrong.",
         StatusCodes.INTERNAL_SERVER_ERROR
       );
     }

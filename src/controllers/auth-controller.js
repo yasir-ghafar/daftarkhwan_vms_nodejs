@@ -38,9 +38,11 @@ async function loginUser(req, res) {
             .json(SuccessResponse)
         }
     } catch(error) {
-        ErrorResponse.error = error;
+        console.log("Error in controller: ", error);
+        ErrorResponse.message = error.explanation;
+        ErrorResponse.error = error.explanation;
         return res
-            .status(StatusCodes.INTERNAL_SERVER_ERROR)
+            .status(error.statusCode)
             .json(ErrorResponse);    
     }
     return SuccessResponse;
