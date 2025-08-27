@@ -31,6 +31,7 @@ async function cancelBooking(req, res) {
     try {
         const result = await bookingService.cancelBooking(id, userId);
         SuccessResponse.message = result;
+        SuccessResponse.data = {}
         res
             .status(StatusCodes.OK)
             .json(SuccessResponse);
