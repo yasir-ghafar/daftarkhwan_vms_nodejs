@@ -178,7 +178,13 @@ async function comparePassword(hashedPassword, password) {
 async function getUserProfile(userId) {
   try {
     const user = await authRepository.get(userId);
-    return user;
+
+
+    const safeUser = { ...user.dataValues };
+    delete safeUser.password_hash;
+    return safeUser;
+
+
   } catch (error) {
     if (error.name == "SequelizeValidationError") {
       let explanation = [];
@@ -198,6 +204,7 @@ async function getUserProfile(userId) {
 async function getAllUsers() {
   try {
     const users = await authRepository.getAll({
+      attributes: { exclude: ["password_hash"] },
       include: [
         {
           model: Company,
