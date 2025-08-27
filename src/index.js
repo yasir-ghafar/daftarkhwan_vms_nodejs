@@ -1,3 +1,6 @@
+require("dotenv").config(); //to make sure it gets the .env file
+
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
