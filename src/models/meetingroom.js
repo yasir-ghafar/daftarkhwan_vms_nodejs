@@ -16,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
   }
   MeetingRoom.init({
     name: DataTypes.STRING,
-    creditsPerSlot: DataTypes.INTEGER,
+    creditsPerSlot: DataTypes.DECIMAL,
     pricePerCredit: DataTypes.DECIMAL,
     seatingCapacity: DataTypes.INTEGER,
     duration:DataTypes.INTEGER,

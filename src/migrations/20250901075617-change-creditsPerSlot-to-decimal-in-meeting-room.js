@@ -9,10 +9,10 @@ module.exports = {
      * Example:
      * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
      */
-    await queryInterface.addColumn('Companies', 'locationName', {
-      type: Sequelize.STRING,
-      allowNull: false,
-      defaultValue: '',
+    await queryInterface.changeColumn('MeetingRooms', 'creditsPerSlot', {
+      type: Sequelize.DECIMAL(10, 2),
+      allowNull: false, // adjust if column can be null
+      defaultValue: 0.0
     });
   },
 
@@ -23,10 +23,9 @@ module.exports = {
      * Example:
      * await queryInterface.dropTable('users');
      */
-    await queryInterface.removeColumn('Companies', 'locationName',{
-      type: Sequelize.STRING,
-      allowNull: false,
-      defaultValue: null
+    await queryInterface.changeColumn('MeetingRooms', 'creditsPerSlot', {
+      type: Sequelize.INTEGER,
+      allowNull: false, // match original column definition
     });
   }
 };
