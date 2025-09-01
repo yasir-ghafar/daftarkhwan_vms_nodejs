@@ -3,7 +3,6 @@ const { MeetingRoomRepository, AmenityRepository } = require("../repositories");
 const AppError = require("../utils/error/app-error");
 const { MeetingRoom } = require("../models");
 const { log } = require("winston");
-
 const { Location, Booking, User, Company } = require("../models");
 const { Op } = require("sequelize");
 const moment = require("moment");
@@ -260,7 +259,12 @@ async function addMeetingRoomCredits(id, data) {
 async function getRoomsByLocationId(locationId) {
   try {
     const rooms = await meetingRoomRepository.getAll({
-      where: { locationId },
+      where: { 
+        LocationId: locationId,
+        status:  {
+          [Op.or]: ["active", "Active"],
+        },
+      },
       include: [
         {
           model: Location,

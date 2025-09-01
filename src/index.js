@@ -1,4 +1,4 @@
-//require("dotenv").config(); //to make sure it gets the .env file
+require("dotenv").config(); //to make sure it gets the .env file
 
 
 const express = require('express');
