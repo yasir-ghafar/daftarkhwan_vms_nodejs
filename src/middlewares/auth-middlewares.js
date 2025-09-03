@@ -5,6 +5,9 @@ const jwt = require('jsonwebtoken');
 const { ServerConfig } = require('../config');
 const { message } = require('../utils/common/error-response');
 
+
+//this method perform check on register/create usre 
+// this method will perform an action that will check if the email already exists in database 
 async function checkIfUserExists(req, res, next) {
     try {
         const email = req.body.email;
@@ -49,6 +52,10 @@ async function authenticateToken(req, res, next) {
     });
 }
 
+// this method check if the comming request has the header 'authorization'
+// if header exists then it verify the token and extract user id and user role from the token
+// and then attache the id and role to the comming request
+
 async function getUserAndGetUserId(req, res, next) {
     const authHeader = req.headers['authorization'];
     
@@ -72,6 +79,9 @@ async function getUserAndGetUserId(req, res, next) {
   }
 
 }
+
+// this method check if the role attached to the request has access to the api call
+// return access denied if the role don't have access.
 
 const authorizeRoles = (...allowedRoles) => {
   return (req, res, next) => {

@@ -20,8 +20,29 @@ async function registerUser(req, res) {
             .status(StatusCodes.INTERNAL_SERVER_ERROR)
             .json(ErrorResponse);    
     }
-    return SuccessResponse;
 }
+
+
+async function editUser(req, res) {
+
+    const { id } = req.params;
+    
+    try {
+        if (req.body) { 
+            console.log(req.body);           
+            const user = await AuthService.editUser(id, req.body);
+            SuccessResponse.data = user;
+            SuccessResponse.message = "User Updated successfully!"
+            return res.json(SuccessResponse);
+        }
+    } catch(error) {
+        ErrorResponse.error = error;
+        return res
+            .status(StatusCodes.INTERNAL_SERVER_ERROR)
+            .json(ErrorResponse);    
+    }
+}
+
 
 async function loginUser(req, res) {
     try {
@@ -106,6 +127,7 @@ module.exports = {
     registerUser,
     loginUser,
     getUsers,
-    getUsersByCompany
+    getUsersByCompany,
+    editUser,
     
 }

@@ -10,6 +10,7 @@ const { ServerConfig } = require("../config");
 
 const authRepository = new AuthRepository();
 
+/// create User
 async function createUser(userData) {
   const transaction = await sequelize.transaction();
   try {
@@ -57,6 +58,71 @@ async function createUser(userData) {
   }
 }
 
+/// Edit User
+async function editUser(userId, updateData) {
+  const transaction = await sequelize.transaction();
+try {
+  const user = await authRepository.get(userId);
+
+  if (!user) {
+    throw new AppError("User not found", StatusCodes.NOT_FOUND);
+  }
+
+  //validations checks 
+
+  if (
+      updateData.name !== undefined &&
+      (!updateData.name || updateData.name.trim() === "")
+    ) {
+      throw new AppError("Name cannot be empty", StatusCodes.BAD_REQUEST);
+    }
+
+    if (
+      updateData.email !== undefined &&
+      (!updateData.email || updateData.email.trim() === "")
+    ) {
+      throw new AppError("Email cannot be empty", StatusCodes.BAD_REQUEST);
+    }
+
+    if (
+      updateData.number !== undefined &&
+      (!updateData.number || updateData.number.trim() === "")
+    ) {
+      throw new AppError("Number cannot be empty", StatusCodes.BAD_REQUEST);
+    }
+
+    // Handle password update
+    if (updateData.password) {
+      updateData.password_hash = await hashPassword(updateData.password);
+      delete updateData.password; // prevent saving raw password
+    }
+
+    const updatedUser = await authRepository.update(userId, updateData, {
+      transaction,
+    });
+
+    await transaction.commit();
+
+    const safeUser = { ...updatedUser.dataValues };
+    delete safeUser.password_hash;
+
+    return safeUser;
+
+
+  } catch (error) {
+    await transaction.rollback();
+    if (error.name == "SequelizeValidationError") {
+      let explanation = error.errors.map((err) => err.message);
+      console.log(explanation);
+      throw new AppError(
+        "Unable to update user",
+        StatusCodes.INTERNAL_SERVER_ERROR
+      );
+    }
+    throw error;
+  }
+}
+/// method to check if the user is already exists
 async function checkUserAlreadyExists(email) {
   console.log(`Checking Email: ${email}`);
   const user = await authRepository.getByEmail(email);
@@ -265,6 +331,7 @@ async function verifyToken(token) {
 
 module.exports = {
   createUser,
+  editUser,
   loginUser,
   checkUserAlreadyExists,
   verifyToken,

@@ -96,7 +96,7 @@ async function getBookingsByUserId(userId) {
       {
         model: MeetingRoom,
         as: 'Room',
-        attributes: ['id', 'name'],
+        attributes: ['id', 'name', 'image'],
         include: [
           {
             model: Location,
