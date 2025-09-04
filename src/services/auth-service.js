@@ -243,7 +243,19 @@ async function comparePassword(hashedPassword, password) {
 
 async function getUserProfile(userId) {
   try {
-    const user = await authRepository.get(userId);
+    const user = await authRepository.getWithOptions(userId, {
+      include: [
+                    {
+                        model: Company,
+                        attributes: ['id', 'name', 'LocationId', 'locationName'],
+                    },
+                    {
+                        model: Wallet,
+                        attributes: ['id', 'meeting_room_credits', 'printing_credits'],
+                    },
+                  
+                ]
+    });
 
 
     if (!user) {
@@ -252,6 +264,7 @@ async function getUserProfile(userId) {
 
     // normalize to plain object
     const safeUser = user.get ? user.get({ plain: true }) : { ...user };
+
     delete safeUser.password_hash;
 
     return safeUser;
