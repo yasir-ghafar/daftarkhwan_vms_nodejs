@@ -99,6 +99,27 @@ async function getUsers(req, res) {
 }
 
 
+async function getUserProfile(req, res) {
+
+    try {
+        console.log(req.role);
+        console.log("User Id",req.userId);
+        const user = await AuthService.getUserProfile(req.userId);
+        SuccessResponse.data = user;
+        SuccessResponse.message = 'User Fetched Successfully';
+        return res
+        .status(StatusCodes.OK)
+        .json(SuccessResponse)
+    } catch(error) {
+            console.log(error);
+            ErrorResponse.error = error;
+            return res
+                .status(error.statusCode)
+                .json(ErrorResponse);
+    }
+  
+}
+
 async function getUsersByCompany(req, res) {
     try {
         const { id } = req.params;
@@ -129,5 +150,5 @@ module.exports = {
     getUsers,
     getUsersByCompany,
     editUser,
-    
+    getUserProfile
 }

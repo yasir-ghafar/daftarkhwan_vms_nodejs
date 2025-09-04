@@ -246,20 +246,22 @@ async function getUserProfile(userId) {
     const user = await authRepository.get(userId);
 
 
-    const safeUser = { ...user.dataValues };
+    if (!user) {
+      throw new AppError("User not found", StatusCodes.NOT_FOUND);
+    }
+
+    // normalize to plain object
+    const safeUser = user.get ? user.get({ plain: true }) : { ...user };
     delete safeUser.password_hash;
+
     return safeUser;
 
-
   } catch (error) {
-    if (error.name == "SequelizeValidationError") {
-      let explanation = [];
-      error.errors.array.forEach((err) => {
-        explanation.push(err.message);
-      });
+    if (error.name === "SequelizeValidationError") {
+      const explanation = error.errors.map((err) => err.message);
       console.log(explanation);
       throw new AppError(
-        "Unable to Fetch Location",
+        "Unable to Fetch User",
         StatusCodes.INTERNAL_SERVER_ERROR
       );
     }

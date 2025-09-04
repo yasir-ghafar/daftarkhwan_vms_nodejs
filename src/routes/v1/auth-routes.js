@@ -13,6 +13,10 @@ router.post('/register',
     
 router.post('/login', AuthController.loginUser);
 
+router.get('/users/profile',
+    AuthMiddlewares.getUserAndGetUserId,
+    AuthMiddlewares.authorizeRoles('admin', 'member'),
+    AuthController.getUserProfile);
 
 router.put('/users/edit/:id',
     AuthMiddlewares.getUserAndGetUserId,
