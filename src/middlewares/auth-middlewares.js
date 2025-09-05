@@ -11,7 +11,7 @@ const { message } = require('../utils/common/error-response');
 async function checkIfUserExists(req, res, next) {
     try {
         const email = req.body.email;
-        console.log(email);
+        console.log("Getting in Auth Middleware::", email);
         const userExists = await AuthService.checkUserAlreadyExists(email);
         if (userExists) {
             console.log('User Exists');
@@ -28,7 +28,7 @@ async function checkIfUserExists(req, res, next) {
         ErrorResponse.message = error
             return  res
                     .status(StatusCodes.INTERNAL_SERVER_ERROR)
-                    .json()
+                    .json(ErrorResponse)
     }
 }
 

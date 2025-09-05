@@ -12,7 +12,9 @@ async function registerUser(req, res) {
             console.log(req.body);           
             const user = await AuthService.createUser(req.body);
             SuccessResponse.data = user;
-            return res.json(SuccessResponse);
+            SuccessResponse.message = "User Registered Successfully!"
+            return res.status(StatusCodes.CREATED)
+                        .json(SuccessResponse);
         }
     } catch(error) {
         ErrorResponse.error = error;

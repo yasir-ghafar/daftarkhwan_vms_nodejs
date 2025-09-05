@@ -43,12 +43,13 @@ async function createUser(userData) {
 
     return safeUser;
   } catch (error) {
+    await transaction.rollback();
     if (error.name == "SequelizeValidationError") {
       let explanation = [];
       error.errors.array.array.forEach((err) => {
         explanation.push(err.message);
       });
-      console.log(explanation);
+      console.log("Explanation::", explanation);
       throw new AppError(
         "Cannot create a new User object",
         StatusCodes.INTERNAL_SERVER_ERROR

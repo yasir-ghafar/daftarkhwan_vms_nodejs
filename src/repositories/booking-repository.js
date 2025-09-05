@@ -76,7 +76,8 @@ async function getBookings() {
             }
           ]
         }
-      ]
+      ],
+      order: [['date', 'DESC']],
     });
   } catch (error) {
     Logger.error('Something went wrong in Booking Repo: getBookings', error);
