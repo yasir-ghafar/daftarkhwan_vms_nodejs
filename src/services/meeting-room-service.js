@@ -126,8 +126,6 @@ async function getAllRooms() {
   }
 }
 
-
-
 async function deleteRoom(id) {
   try {
     const room = await meetingRoomRepository.get(id);
@@ -386,7 +384,6 @@ async function getMeetingRoomWithStatus(id) {
 }
 
 
-
 // Method ot get meeting room availability by date 
 async function getMeetingRoomAvailabilityByDate(id, date) {
   try {
@@ -400,7 +397,8 @@ async function getMeetingRoomAvailabilityByDate(id, date) {
         {
           model: Booking,
           required: false,
-          where: { date }, // <-- Filter bookings only for requested date
+          where: { date }, // Only bookings for the requested date
+          attributes: ["id", "date", "startTime", "endTime", "status"], // <-- include status
         },
       ],
     });
@@ -411,10 +409,10 @@ async function getMeetingRoomAvailabilityByDate(id, date) {
 
     const roomData = room.toJSON();
 
-    const { availableSlots, availableSlotsCount } = calculateAvailableSlotsByDate(
+    const { availableSlots, availableSlotsCount } = calculateAvailableSlots(
       roomData,
       roomData.Bookings,
-      date // <-- pass date into calculator
+      date
     );
 
     delete roomData.Bookings;
@@ -426,7 +424,7 @@ async function getMeetingRoomAvailabilityByDate(id, date) {
       availableSlotsCount,
     };
   } catch (error) {
-    console.log("In service: ", error);
+    console.error("In service: ", error);
 
     if (error.name === "SequelizeValidationError") {
       const messages = error.errors.map((err) => err.message);
@@ -438,15 +436,15 @@ async function getMeetingRoomAvailabilityByDate(id, date) {
 }
 
 
-function calculateAvailableSlotsByDate(room, bookings = [], date = null) {
-  // If no date is provided, default to today
+function calculateAvailableSlots(room, bookings = [], date = null) {
+  // Use given date or fallback to today
   const targetDate = date 
     ? moment(date, "YYYY-MM-DD").format("YYYY-MM-DD")
     : moment().format("YYYY-MM-DD");
 
   console.log(`Target date:`, targetDate);
 
-  // Combine target date with opening and closing times
+  // Build opening/closing times for the target date
   const openingTime = moment(`${targetDate} ${room.openingTime}`, "YYYY-MM-DD hh:mm:ss A");
   const closingTime = moment(`${targetDate} ${room.closingTime}`, "YYYY-MM-DD hh:mm:ss A");
 
@@ -456,7 +454,6 @@ function calculateAvailableSlotsByDate(room, bookings = [], date = null) {
 
   const SLOT_DURATION_MINUTES = room.duration;
   const slots = [];
-
   let slotStart = openingTime.clone();
 
   while (slotStart.clone().add(SLOT_DURATION_MINUTES, "minutes").isSameOrBefore(closingTime)) {
@@ -468,76 +465,30 @@ function calculateAvailableSlotsByDate(room, bookings = [], date = null) {
     slotStart = slotEnd;
   }
 
-  // Filter bookings for the given date
-  const bookingsForDate = bookings.filter(b => b.date === targetDate);
+
+  const activeBookings = bookings.filter(
+    b => b.date === targetDate && b.status !== "cancelled"
+  );
 
   const availableSlots = slots.filter(slot => {
     const slotStartTime = moment(`${targetDate} ${slot.start}`, "YYYY-MM-DD HH:mm");
     const slotEndTime = moment(`${targetDate} ${slot.end}`, "YYYY-MM-DD HH:mm");
 
-    return !bookingsForDate.some(booking => {
+    return !activeBookings.some(booking => {
       const bookingStart = moment(`${targetDate} ${booking.startTime}`, "YYYY-MM-DD HH:mm");
       const bookingEnd = moment(`${targetDate} ${booking.endTime}`, "YYYY-MM-DD HH:mm");
 
-      // Check for overlap
       return slotStartTime.isBefore(bookingEnd) && slotEndTime.isAfter(bookingStart);
     });
   });
 
+  console.log("Available Slots:", availableSlots.length);
   return {
     availableSlots,
     availableSlotsCount: availableSlots.length,
   };
 }
 
-
-function calculateAvailableSlots(room, bookings = []) {
-  const today = moment().format("YYYY-MM-DD");
-  console.log(`Today date:`, today);
-  // Combine today's date with opening and closing times
-  console.log(room.openingTime);
-  console.log(room.closingTime);
-  const openingTime = moment(`${today} ${room.openingTime}`, "YYYY-MM-DD hh:mm:ss A");
-  const closingTime = moment(`${today} ${room.closingTime}`, "YYYY-MM-DD hh:mm:ss A");
-
-  if (!openingTime.isValid() || !closingTime.isValid() || openingTime.isSameOrAfter(closingTime)) {
-    return { availableSlots: [], availableSlotsCount: 0 };
-  }
-
-  const SLOT_DURATION_MINUTES = room.duration;
-  const slots = [];
-
-  let slotStart = openingTime.clone();
-
-  while (slotStart.clone().add(SLOT_DURATION_MINUTES, "minutes").isSameOrBefore(closingTime)) {
-    const slotEnd = slotStart.clone().add(SLOT_DURATION_MINUTES, "minutes");
-    slots.push({
-      start: slotStart.format("HH:mm"),
-      end: slotEnd.format("HH:mm"),
-    });
-    slotStart = slotEnd;
-  }
-
-  const bookingsToday = bookings.filter(b => b.date === today);
-
-  const availableSlots = slots.filter(slot => {
-    const slotStartTime = moment(`${today} ${slot.start}`, "YYYY-MM-DD HH:mm");
-    const slotEndTime = moment(`${today} ${slot.end}`, "YYYY-MM-DD HH:mm");
-
-    return !bookingsToday.some(booking => {
-      const bookingStart = moment(`${today} ${booking.startTime}`, "YYYY-MM-DD HH:mm");
-      const bookingEnd = moment(`${today} ${booking.endTime}`, "YYYY-MM-DD HH:mm");
-
-      // Check for overlap
-      return slotStartTime.isBefore(bookingEnd) && slotEndTime.isAfter(bookingStart);
-    });
-  });
-
-  return {
-    availableSlots,
-    availableSlotsCount: availableSlots.length,
-  };
-}
 
 
 

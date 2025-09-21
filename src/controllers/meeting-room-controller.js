@@ -99,6 +99,7 @@ async function getRoomAvailabilityByDate(req, res) {
         const roomAvailability = await MeetingRoomService.getMeetingRoomAvailabilityByDate(id, date);
 
         SuccessResponse.data = roomAvailability;
+        SuccessResponse.message = "Fetched Room Successfully"
 
         return res.status(StatusCodes.OK).json(SuccessResponse);
     } catch (error) {

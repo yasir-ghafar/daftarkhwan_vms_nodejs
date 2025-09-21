@@ -61,6 +61,7 @@ async function createUser(userData) {
 
 /// Edit User
 async function editUser(userId, updateData) {
+  console.log("Getting in Edit User method in service")
   const transaction = await sequelize.transaction();
 try {
   const user = await authRepository.get(userId);
@@ -70,7 +71,6 @@ try {
   }
 
   //validations checks 
-
   if (
       updateData.name !== undefined &&
       (!updateData.name || updateData.name.trim() === "")

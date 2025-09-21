@@ -5,13 +5,12 @@ const jwt = require('jsonwebtoken');
 const { ServerConfig } = require('../config');
 const { message } = require('../utils/common/error-response');
 
-
 //this method perform check on register/create usre 
 // this method will perform an action that will check if the email already exists in database 
 async function checkIfUserExists(req, res, next) {
     try {
         const email = req.body.email;
-        console.log("Getting in Auth Middleware::", email);
+        console.log("Getting in Auth Middleware::",email);
         const userExists = await AuthService.checkUserAlreadyExists(email);
         if (userExists) {
             console.log('User Exists');
@@ -75,7 +74,7 @@ async function getUserAndGetUserId(req, res, next) {
 
     next();
   } catch (err) {
-    return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+    return res.status(StatusCodes.UNAUTHORIZED).json({ message: 'Unauthorized: Invalid token' });
   }
 
 }

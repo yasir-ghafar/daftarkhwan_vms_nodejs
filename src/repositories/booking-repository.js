@@ -28,6 +28,7 @@ async function areSlotsAvailable({ room_id, date, slots, startTime, endTime }, t
     FROM Bookings
     WHERE room_id = :room_id
       AND date = :date
+      AND status != 'cancelled'
       AND NOT (
         :endTime <= startTime OR
         :startTime >= endTime

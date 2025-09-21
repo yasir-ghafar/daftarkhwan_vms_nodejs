@@ -26,9 +26,7 @@ async function registerUser(req, res) {
 
 
 async function editUser(req, res) {
-
     const { id } = req.params;
-    
     try {
         if (req.body) { 
             console.log(req.body);           
