@@ -133,7 +133,7 @@ async function checkUserAlreadyExists(email) {
 }
 
 async function loginUser(email, password) {
-  console.log(">>> Hitting /Login User in Service", req.body);
+  console.log(">>> Hitting /Login User in Service");
   try {
     const user = await authRepository.getByEmail(email);
 
