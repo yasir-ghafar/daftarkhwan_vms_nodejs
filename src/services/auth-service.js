@@ -12,6 +12,7 @@ const authRepository = new AuthRepository();
 
 /// create User
 async function createUser(userData) {
+  console.log(">>> Hitting /Create User in Service", req.body);
   const transaction = await sequelize.transaction();
   try {
     const hashedPassword = await hashPassword(userData.password);
@@ -131,59 +132,8 @@ async function checkUserAlreadyExists(email) {
   else return false;
 }
 
-// async function loginUser(email, password) {
-//     try {
-//         const user = await authRepository.getByEmail({
-//                 where: {
-//                     email: email
-//                 },
-//                 include: [
-//                 {
-//                     model: Company,
-//                     as: 'company',
-//                     attributes: ['id', 'name', 'LocationId', 'locationName'],
-//                 }
-//             ]
-//             });
-
-//         if (!user) {
-//             throw new AppError('User Not Found!', 404);
-//         }
-//         console.log(user);
-//         console.log(password);
-//         console.log(user.password_hash);
-//         const isMatch = await comparePassword(user.password_hash, password);
-
-//         if (!isMatch) {
-//             throw new AppError('Password is Incorrect', 400);
-//         }
-//         const token = issueToken({
-//             id: user.id,
-//             name: user.name,
-//             email: user.email,
-//             role: user.role
-//         })
-
-//         console.log(token);
-
-//         const safeUser = { ...user.dataValues }
-//         delete safeUser.password_hash;
-
-//         return {...safeUser,
-//              authorization: token};
-//     } catch(error) {
-//       console.log(error);
-//         await transaction.rollback();
-//         if (error.name == 'SequelizeValidationError') {
-//             let explanation = error.errors.map(err => err.message);
-//             console.log(explanation);
-//             throw new AppError('Cannot create a new User object', StatusCodes.INTERNAL_SERVER_ERROR);
-//         }
-//         throw error;
-//     }
-// }
-
 async function loginUser(email, password) {
+  console.log(">>> Hitting /Login User in Service", req.body);
   try {
     const user = await authRepository.getByEmail(email);
 
