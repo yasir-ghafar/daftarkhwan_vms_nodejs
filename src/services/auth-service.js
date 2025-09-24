@@ -12,7 +12,7 @@ const authRepository = new AuthRepository();
 
 /// create User
 async function createUser(userData) {
-  console.log(">>> Hitting /Create User in Service", req.body);
+  console.log(">>> Hitting /Create User in Service");
   const transaction = await sequelize.transaction();
   try {
     const hashedPassword = await hashPassword(userData.password);

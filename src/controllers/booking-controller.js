@@ -25,11 +25,14 @@ async function createBooking(req, res) {
 
 async function cancelBooking(req, res) {
     console.log("userId in controller",req.userId);
+    console.log("Role in controller",req.role);
     const { id } = req.params;
     const userId = req.userId;
+    const isAdmin = req.role === 'admin';
 
+    console.log("User is Admin", isAdmin);
     try {
-        const result = await bookingService.cancelBooking(id, userId);
+        const result = await bookingService.cancelBooking(id, userId, isAdmin);
         SuccessResponse.message = result;
         SuccessResponse.data = {}
         res

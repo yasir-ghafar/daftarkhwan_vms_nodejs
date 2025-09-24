@@ -180,51 +180,47 @@ async function getAllBookingsByUserId(userId) {
     }
 }
 
-async function cancelBooking(bookingId, userId) {
+async function cancelBooking(bookingId, userId, isAdmin = false) {
   const transaction = await sequelize.transaction();
 
   try {
-    console.log("Booking Id: ", bookingId);
-    console.log("User Id: ", userId);
-    //fetch booking with room and wallet details
+    console.log("Booking Id:", bookingId);
+    console.log("User Id:", userId);
+
+    // Fetch booking with room and wallet details
     const booking = await bookingRepo.getBookingWithUserandRoom(
       bookingId,
       transaction
     );
-   
+
     if (!booking) {
       throw new AppError("Booking not found", StatusCodes.NOT_FOUND);
     }
 
-    if (booking.status == 'cancelled') {
-      throw new AppError("Booking is Already Cancelled.", StatusCodes.NOT_FOUND);
+    if (booking.status === 'cancelled') {
+      throw new AppError("Booking is already cancelled", StatusCodes.BAD_REQUEST);
     }
 
-    // prevent users to cancell booking they don't own
-    if ((booking.user_id = !userId)) {
+    // Prevent non-admin users from cancelling someone else's booking
+    if (!isAdmin && booking.user_id !== userId) {
       throw new AppError(
         "Unauthorized cancellation attempt",
         StatusCodes.UNAUTHORIZED
       );
     }
 
-    // Optional: prevent cancellation after booking has already passed
+    // Prevent cancellation of past or ongoing bookings
     const now = new Date();
-
-    // Get current UTC date and time
     const nowDateUTC = new Date(
       Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
     );
     const nowTimeUTC = now.getUTCHours() * 60 + now.getUTCMinutes();
 
     const bookingDate = new Date(`${booking.date}T00:00:00.000Z`);
-    
-
     const bookingStart = new Date(booking.startTime);
     const bookingTimeMins =
       bookingStart.getUTCHours() * 60 + bookingStart.getUTCMinutes();
 
-    // Step 1: Check if booking date has already passed
     if (bookingDate < nowDateUTC) {
       throw new AppError(
         "Cannot cancel a booking for a past date",
@@ -232,7 +228,6 @@ async function cancelBooking(bookingId, userId) {
       );
     }
 
-    // Step 2: If date is today, check if time has already passed
     if (
       bookingDate.getTime() === nowDateUTC.getTime() &&
       bookingTimeMins <= nowTimeUTC
@@ -250,37 +245,40 @@ async function cancelBooking(bookingId, userId) {
       );
     }
 
-    //Get user's wallet
-    console.log("In Service User Id:", userId);
-    
-    const user = await userRepo.getUserWithWallet(userId, transaction);
-    if (!user || !user.Wallet) {
-      throw new AppError('User or Wallet not found', StatusCodes.NOT_FOUND);
+    // Get user's wallet (refund goes to the original booking owner, not the admin)
+    const bookingUser = await userRepo.getUserWithWallet(booking.user_id, transaction);
+    if (!bookingUser || !bookingUser.Wallet) {
+      throw new AppError("User or Wallet not found", StatusCodes.NOT_FOUND);
     }
 
     const refundAmount = booking.total_credits;
 
-    await walletRepo.updateWalletBalance(user.Wallet, refundAmount, transaction);
+    await walletRepo.updateWalletBalance(
+      bookingUser.Wallet,
+      refundAmount,
+      transaction
+    );
 
-    //log refund transaction
-
+    // Log refund transaction
     await walletRepo.logWalletTransaction(
-      user.Wallet.id,
+      bookingUser.Wallet.id,
       'credit',
       refundAmount,
       `Refund for canceled booking ID ${bookingId}`,
       transaction
     );
 
+    // Mark booking as cancelled
     await bookingRepo.cancelBookingById(bookingId, transaction);
 
     await transaction.commit();
-    return "Booking canceled and wallet refunded successfully.";
+    return "Booking cancelled and wallet refunded successfully.";
   } catch (error) {
     await transaction.rollback();
     throw error;
   }
 }
+
 
 async function getBookingsByRoomIdAndDate(roomId, date) {
   console.log('getting in service');

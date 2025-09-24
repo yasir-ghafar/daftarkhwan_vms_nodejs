@@ -6,12 +6,12 @@ const { AuthController } = require('../../controllers');
 const { AuthMiddlewares } = require('../../middlewares');
 
 const router = express.Router();
+    
+router.post('/login', AuthController.loginUser);
 
 router.post('/register',
     AuthMiddlewares.checkIfUserExists,
     AuthController.registerUser,);
-    
-router.post('/login', AuthController.loginUser);
 
 router.get('/users/profile',
     AuthMiddlewares.getUserAndGetUserId,
