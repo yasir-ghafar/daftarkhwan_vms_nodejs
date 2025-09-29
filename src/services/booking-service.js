@@ -198,6 +198,8 @@ async function cancelBooking(bookingId, userId, isAdmin = false) {
     }
 
     if (booking.status === 'cancelled') {
+
+      
       throw new AppError("Booking is already cancelled", StatusCodes.BAD_REQUEST);
     }
 
