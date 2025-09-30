@@ -213,6 +213,7 @@ async function getBookingsByRoomAndDate(roomId, date) {
     where: {
       room_id: roomId,
       date: date, // filtering by exact date
+      status: "confirmed"
     },
     include: [
       {
