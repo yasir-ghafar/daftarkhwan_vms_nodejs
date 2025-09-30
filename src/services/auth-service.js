@@ -25,8 +25,6 @@ async function createUser(userData) {
       { transaction }
     );
 
-    // if user rols is a member, create a wallet
-
     if (user.role === "member") {
       await Wallet.create(
         {
