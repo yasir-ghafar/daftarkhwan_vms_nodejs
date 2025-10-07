@@ -9,14 +9,10 @@ module.exports = {
      * Example:
      * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
      */
-
-    await queryInterface.addColumn('MeetingRooms', 'status', {
-      type: Sequelize.STRING,
-      allowNull: false
-    });
-    await queryInterface.addColumn('MeetingRooms', 'locationName', {
-      type: Sequelize.STRING,
-      allowNull: false
+    queryInterface.addColumn('Wallets', 'auto_renewal', {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
     });
   },
 
@@ -27,8 +23,6 @@ module.exports = {
      * Example:
      * await queryInterface.dropTable('users');
      */
-
-    await queryInterface.removeColumn('MeetingRooms', 'status');
-    await queryInterface.removeColumn('MeetingRooms', 'locationName');
+    queryInterface.removeColumn('Wallets', 'auto_renewal');
   }
 };
