@@ -6,7 +6,7 @@ const { ServerConfig } = require('../config');
 const { message } = require('../utils/common/error-response');
 
 //this method perform check on register/create usre 
-// this method will perform an action that will check if the email already exists in database 
+// this method will perform an action that will check if the email already exists in database
 async function checkIfUserExists(req, res, next) {
     try {
         const email = req.body.email;
