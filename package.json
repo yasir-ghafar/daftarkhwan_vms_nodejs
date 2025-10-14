@@ -12,6 +12,7 @@
     "argon2": "^0.43.0",
     "connect-timeout": "^1.9.1",
     "cors": "^2.8.5",
+    "cron": "^4.3.3",
     "dotenv": "^17.0.0",
     "express": "^5.1.0",
     "http-status-codes": "^2.3.0",

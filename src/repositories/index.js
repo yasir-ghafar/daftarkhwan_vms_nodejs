@@ -5,4 +5,5 @@ module.exports = {
     MemberRepository: require('./member-repository'),
     MeetingRoomRepository: require('./meeting-room-repository'),
     AmenityRepository: require('./amenities-repository'),
+    WalletRepository: require('./wallet-repository'),
 }

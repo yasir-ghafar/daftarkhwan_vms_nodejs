@@ -26,10 +26,11 @@ async function createUser(userData) {
     );
 
     if (user.role === "member") {
+      console.log("role is memeber: creating wallet.")
       await Wallet.create(
         {
           user_id: user.id,
-          balance: 50.0,
+          auto_renewal: userData.auto_renew
         },
         { transaction }
       );
@@ -172,20 +173,25 @@ async function editUser(userId, updateData) {
   console.log("💾 [editUser] Final update payload:", JSON.stringify(fieldsToUpdate, null, 2));
 
   try {
-    await authRepository.update(id, fieldsToUpdate);
-    console.log("✅ [editUser] User update successful for ID:", id);
+    const result = await authRepository.update(id, fieldsToUpdate);
+    
+    // Sequelize’s update() often returns [affectedCount], normalize that
+    const affected = Array.isArray(result) ? result[0] : result;
+
+    if (!affected) {
+      throw new AppError("User update failed", StatusCodes.INTERNAL_SERVER_ERROR);
+    }
+
+    const updatedUser = await authRepository.get(id);
+    const safeUser = { ...(updatedUser?.dataValues || updatedUser) };
+    delete safeUser.password_hash;
+
+    console.log("🟢 [editUser] Final updated user:", JSON.stringify(safeUser, null, 2));
+    return safeUser;
   } catch (err) {
     console.error("💥 [editUser] Error while updating user:", err);
-    throw err; // rethrow to capture Sequelize validation/unique constraint errors
+    throw err;
   }
-
-  // 🔁 Fetch updated user
-  const updatedUser = await authRepository.get(id);
-  const safeUser = { ...updatedUser.dataValues };
-  delete safeUser.password_hash;
-
-  console.log("🟢 [editUser] Final updated user:", JSON.stringify(safeUser, null, 2));
-  return safeUser;
 }
 
 /// method to check if the user is already exists
@@ -203,7 +209,7 @@ async function loginUser(email, password) {
 
     if (!user) {
       throw new AppError("User Not Found!",
-         StatusCodes.NOT_FOUND);
+        StatusCodes.NOT_FOUND);
     }
 
     console.log(password);
@@ -212,7 +218,7 @@ async function loginUser(email, password) {
 
     if (!isMatch) {
       throw new AppError("Incorrect Password!",
-         StatusCodes.BAD_REQUEST);
+        StatusCodes.BAD_REQUEST);
     }
     const token = issueToken({
       id: user.id,
@@ -260,16 +266,16 @@ async function getUserProfile(userId) {
   try {
     const user = await authRepository.getWithOptions(userId, {
       include: [
-                    {
-                        model: Company,
-                        attributes: ['id', 'name', 'LocationId', 'locationName'],
-                    },
-                    {
-                        model: Wallet,
-                        attributes: ['id', 'meeting_room_credits', 'printing_credits'],
-                    },
-                  
-                ]
+        {
+          model: Company,
+          attributes: ['id', 'name', 'LocationId', 'locationName'],
+        },
+        {
+          model: Wallet,
+          attributes: ['id', 'meeting_room_credits', 'printing_credits'],
+        },
+
+      ]
     });
 
 

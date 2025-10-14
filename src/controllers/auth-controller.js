@@ -6,7 +6,6 @@ const { success, message } = require('../utils/common/error-response');
 const { getAllUsersByCompanyId } = require('../services/auth-service');
 
 async function registerUser(req, res) {
-    console.log(">>> Hitting /register route", req.body);
     console.log('in Controller..')
     try {
         if (req.body) { 

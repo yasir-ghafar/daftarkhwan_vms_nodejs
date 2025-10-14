@@ -9,6 +9,8 @@ const { ServerConfig } = require('./config');
 const  apiRoutes = require('./routes');
 const { StatusCodes } = require('http-status-codes');
 
+const walletBalanceJob = require('./jobs/wallet-cron-job.js');
+
 const app = express()
 const PORT = ServerConfig.PORT;
 const REQUEST_TIMEOUT = 10000; // 10 seconds
@@ -40,6 +42,7 @@ app.use((err, req, res, next) => {
     }
 });
 
+walletBalanceJob.start();
 app.listen(PORT, () => {
     console.log(`Successfully started the server on PORT: ${PORT}`);
 });
