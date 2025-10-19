@@ -24,7 +24,6 @@ async function registerUser(req, res) {
     }
 }
 
-
 async function editUser(req, res) {
     const { id } = req.params;
     try {
@@ -42,7 +41,6 @@ async function editUser(req, res) {
             .json(ErrorResponse);    
     }
 }
-
 
 async function loginUser(req, res) {
 

@@ -1,6 +1,7 @@
 const { sequelize } = require("../models");
 const userRepo = require("../repositories/user-repository");
 const walletRepo = require("../repositories/wallet-repository");
+const activityRepo = require("../repositories/activity-repository");
 const bookingRepo = require("../repositories/booking-repository");
 
 const AppError = require("../utils/error/app-error");
@@ -10,6 +11,8 @@ const { MeetingRoomRepository } = require("../repositories");
 
 const meetingRoomRepository = new MeetingRoomRepository();
 
+
+/// Utility Method Required In Repo
 function validateSlotTiming(startTime, endTime) {
   const start = new Date(startTime);
   const end = new Date(endTime);
@@ -33,7 +36,9 @@ function validateSlotTiming(startTime, endTime) {
   return start >= opening && end <= closing;
 }
 
+/// Method to create a booking against a meeting room
 async function bookMeetingRoom({
+  booking_user,
   date,
   startTime,
   endTime,
@@ -45,7 +50,7 @@ async function bookMeetingRoom({
   title,
   description
 }) {
-  console.log({ user_id, room_id });
+  console.log({ booking_user, user_id, room_id });
   const transaction = await sequelize.transaction();
 
   try {
@@ -112,6 +117,7 @@ async function bookMeetingRoom({
       transaction
     );
 
+
     //createBooking
     const booking = await bookingRepo.createBooking(
       {
@@ -131,6 +137,27 @@ async function bookMeetingRoom({
       transaction
     );
 
+    // 11️⃣ Log activity (atomic with the transaction)
+    await activityRepo.logActivity(
+      {
+        userId: user_id,
+        action: "BOOKING_CREATED",
+        targetId: booking.id,
+        targetType: "MeetingRoomBooking",
+        metadata: {
+          roomName: room.name,
+          date,
+          startTime,
+          endTime,
+          totalCredits: cost,
+          slots
+        },
+        performedBy: booking_user || user_id
+      },
+      transaction
+    );
+
+
     await transaction.commit();
     return booking;
   } catch (error) {
@@ -140,6 +167,7 @@ async function bookMeetingRoom({
   }
 }
 
+/// Get All Bookings
 async function getAllBookings() {
     try {
         const bookings = await bookingRepo.getBookings();
@@ -160,6 +188,7 @@ async function getAllBookings() {
     }
 }
 
+/// Get Bookings by a User
 async function getAllBookingsByUserId(userId) {
     try {
         const bookings = await bookingRepo.getBookingsByUserId(userId);
@@ -180,6 +209,7 @@ async function getAllBookingsByUserId(userId) {
     }
 }
 
+/// Cancel Booking
 async function cancelBooking(bookingId, userId, isAdmin = false) {
   const transaction = await sequelize.transaction();
 
@@ -281,7 +311,7 @@ async function cancelBooking(bookingId, userId, isAdmin = false) {
   }
 }
 
-
+/// method to get Bookings of a single meeting room on a specific date.
 async function getBookingsByRoomIdAndDate(roomId, date) {
   console.log('getting in service');
 
@@ -317,6 +347,9 @@ async function getBookingsByRoomIdAndDate(roomId, date) {
     throw error;
   }
 }
+
+
+
 
 
 module.exports = {

@@ -2,6 +2,7 @@ const { StatusCodes } = require("http-status-codes");
 const { sequelize } = require('../models');
 const { CompanyRepository } = require("../repositories");
 const walletRepository = require("../repositories/wallet-repository");
+const activityRepository = require("../repositories/activity-repository");
 const AppError = require("../utils/error/app-error");
 const { User, Wallet, Location } = require('../models');
 const { where } = require("sequelize");
@@ -204,6 +205,7 @@ async function updateCompanyStatus(id, status) {
 
 
 
+
 async function updateWalletCreditsService(walletId, updates) {
 
     console.log("getting here in service")
@@ -241,7 +243,6 @@ async function getWalletTransactionsById(walletId) {
 
   try {
       return await sequelize.transaction(async (transaction) => {
-        // Update wallet credits
         const transactions = await walletRepository.getWalletTransactions(walletId, transaction);
 
         return transactions;
@@ -263,6 +264,26 @@ async function getWalletTransactionsById(walletId) {
   
 }
 
+async function getWalletTransactionsReport(userId) {
+  try {
+    console.log("In Service user id:", userId)
+    const records = await activityRepository.getUserActivitiesDetailed(userId);
+    return records;
+  } catch (error) {
+    if (error.name == "SequelizeValidationError") {
+      let explanation = [];
+      error.errors.array.forEach((err) => {
+        explanation.push(err.message);
+      });
+      console.log(explanation);
+      throw new AppError(
+        "Unable to Fetch Companies",
+        StatusCodes.INTERNAL_SERVER_ERROR
+      );
+    }
+    throw error;
+  } 
+}
 
 module.exports = {
   createCompany,
@@ -272,5 +293,6 @@ module.exports = {
   updateCompanyStatus,
   updateWalletCreditsService,
   getCompaniesByLocationId,
-  getWalletTransactionsById
+  getWalletTransactionsById,
+  getWalletTransactionsReport,
 };

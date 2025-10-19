@@ -4,12 +4,15 @@ const { SuccessResponse, ErrorResponse } = require('../utils/common');
 
 
 
+/// Create a booking
 async function createBooking(req, res) {
     const { date, startTime, endTime, location_id, room_id, company_id, user_id, status, title, description } = req.body;
-    
+    const booking_user = req.userId;
+    console.log("UserID in Request: ", req.userId);
+
     try {
         const booking = await bookingService.bookMeetingRoom(
-            { date, startTime, endTime, location_id, room_id, company_id, user_id, status, title, description }
+            { booking_user, date, startTime, endTime, location_id, room_id, company_id, user_id, status, title, description }
         );
         SuccessResponse.data = booking;
         SuccessResponse.message = "Booking Created Successfully!"
@@ -23,6 +26,7 @@ async function createBooking(req, res) {
     }
 }
 
+/// Cancel Booking
 async function cancelBooking(req, res) {
     console.log("userId in controller",req.userId);
     console.log("Role in controller",req.role);
@@ -47,6 +51,7 @@ async function cancelBooking(req, res) {
     }
 }
 
+///Get All Bookings
 async function getBookings(req, res) {
      console.log('getting in controller: getBookings');
     try {
@@ -65,6 +70,7 @@ async function getBookings(req, res) {
     }
 }
 
+/// Get Bookings By User Id
 async function getBookingsByUserId(req, res) {
     try {
         const { id } = req.params;
@@ -86,6 +92,7 @@ async function getBookingsByUserId(req, res) {
     }
 }
 
+/// Get Bookings for a Room on specific date.
 async function bookigsByRoomAndDate(req, res) {
     console.log('getting in controller');
     const { room_id, date } = req.query;

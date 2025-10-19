@@ -358,7 +358,7 @@ async function getAllUsersByCompanyId(company_id) {
 }
 
 function issueToken(payload) {
-  return jwt.sign(payload, ServerConfig.JWT_SECRET, { expiresIn: "12h" });
+  return jwt.sign(payload, ServerConfig.JWT_SECRET, { expiresIn: "30d" });
 }
 
 async function verifyToken(token) {

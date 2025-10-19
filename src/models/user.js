@@ -14,6 +14,12 @@ module.exports = (sequelize, DataTypes) => {
       User.hasOne(models.Wallet, { foreignKey: 'user_id' });
       User.hasMany(models.Booking, { foreignKey: 'user_id' });
       User.belongsTo(models.Company, { foreignKey: 'company_id',});
+
+      // Activities that belong *to* this user
+      User.hasMany(models.Activity, { as: 'activities', foreignKey: 'userId' });
+
+      // Activities that were *performed by* this user
+      User.hasMany(models.Activity, {  as: 'performedActivities', foreignKey: 'performedBy'});
     }
   }
   User.init({

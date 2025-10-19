@@ -229,6 +229,30 @@ async function getWalletTransactions(req, res) {
 
 }
 
+
+async function getWalletTransactionsReport(req, res) {
+
+    console.log(req.body);
+    const userId = req.body.user_id;
+    try {
+        const records = await CompanyService.getWalletTransactionsReport(userId);
+        SuccessResponse.data = records;
+        SuccessResponse.message = "Successfully Fetched the Report"
+
+        return res.status(StatusCodes.OK)
+            .json(SuccessResponse);
+    } catch(error) {
+        return res
+            .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+            .json({
+                success: false,
+                message: error.message || 'Something went wrong while Fetching Transactions.'
+            });
+    }
+    
+}
+
+
 module.exports = {
     createCompany,
     getCompanies,
@@ -237,6 +261,7 @@ module.exports = {
     updateCompanyStatus,
     updateWalletCredits,
     getCompaniesByLocationId,
-    getWalletTransactions
+    getWalletTransactions,
+    getWalletTransactionsReport
 
 }

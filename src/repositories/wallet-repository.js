@@ -1,4 +1,4 @@
-const { Wallet, WalletTransaction } = require('../models');
+const { Wallet, WalletTransaction, } = require('../models');
 const CrudRepository = require('./crud-repository');
 
 async function updateWalletBalance(wallet, amount, transaction) {

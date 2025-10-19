@@ -9,5 +9,4 @@ router.post('/', MemberController.createMember);
 
 router.get('/', MemberController.getAllMembers);
 
-
 module.exports = router;
