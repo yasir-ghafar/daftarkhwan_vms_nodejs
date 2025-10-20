@@ -22,13 +22,13 @@ router.get('/',
 
 router.post('/',
     AuthMiddlewares.getUserAndGetUserId,
-    AuthMiddlewares.authorizeRoles('admin', 'member'),
+    AuthMiddlewares.authorizeRoles('admin', 'manager', 'member'),
     BookingController.createBooking);
 
 
 router.post('/cancel/:id',
     AuthMiddlewares.getUserAndGetUserId,
-        AuthMiddlewares.authorizeRoles('admin', 'member'),
+        AuthMiddlewares.authorizeRoles('admin', 'manager', 'member'),
     BookingController.cancelBooking);
 
 

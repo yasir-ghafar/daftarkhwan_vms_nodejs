@@ -4,8 +4,6 @@ const { AuthMiddlewares } = require('../../middlewares')
 
 const router = express.Router();
 
-
-
 router.post('/',
     AuthMiddlewares.getUserAndGetUserId,
     AuthMiddlewares.authorizeRoles('admin'),

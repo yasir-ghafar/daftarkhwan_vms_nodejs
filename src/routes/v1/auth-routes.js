@@ -16,7 +16,7 @@ router.post('/register',
 
 router.get('/users/profile',
     AuthMiddlewares.getUserAndGetUserId,
-    AuthMiddlewares.authorizeRoles('admin', 'member'),
+    AuthMiddlewares.authorizeRoles('admin', 'manager', 'member'),
     AuthController.getUserProfile);
 
 router.put('/users/edit/:id',
@@ -26,12 +26,12 @@ router.put('/users/edit/:id',
 
 router.get('/users',
     AuthMiddlewares.getUserAndGetUserId,
-    AuthMiddlewares.authorizeRoles('admin', 'member'),
+    AuthMiddlewares.authorizeRoles('admin', 'manager', 'member'),
     AuthController.getUsers);
 
 router.get('/users/company/:id',
     AuthMiddlewares.getUserAndGetUserId,
-    AuthMiddlewares.authorizeRoles('admin'),
+    AuthMiddlewares.authorizeRoles('admin', 'manager',),
     AuthController.getUsersByCompany
 )
 

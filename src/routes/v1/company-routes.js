@@ -5,7 +5,7 @@ const { CompanyController } = require('../../controllers');
 const router = express.Router();
 
 router.get('/wallet/transactions/:id', CompanyController.getWalletTransactions);
-router.get('/wallet/report', CompanyController.getWalletTransactionsReport);
+router.post('/wallet/report', CompanyController.getWalletTransactionsReport);
 router.put('/wallets/:id', CompanyController.updateWalletCredits);
 
 router.post('/', CompanyController.createCompany);

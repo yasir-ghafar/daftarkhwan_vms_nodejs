@@ -25,8 +25,7 @@ async function createUser(userData) {
       { transaction }
     );
 
-    if (user.role === "member") {
-      console.log("role is memeber: creating wallet.")
+      console.log("creating wallet.")
       await Wallet.create(
         {
           user_id: user.id,
@@ -34,7 +33,6 @@ async function createUser(userData) {
         },
         { transaction }
       );
-    }
 
     await transaction.commit();
 
