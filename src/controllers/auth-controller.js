@@ -75,6 +75,9 @@ async function getUsers(req, res) {
         console.log(req.role)
         if (req.role === 'admin') {
             users  = await AuthService.getAllUsers();
+        }
+        if (req.role === 'manager') {
+            users  = await AuthService.getAllUsers();
         } else if (req.role === 'member') {
             users = await AuthService.getUserProfile(req.userId);
         } else {
