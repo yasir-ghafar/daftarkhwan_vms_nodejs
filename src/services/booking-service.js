@@ -96,6 +96,8 @@ async function bookMeetingRoom({
 
     /// get user wallet, throws error if does not exists
     const user = await userRepo.getUserWithWallet(user_id, transaction);
+      console.log("User Company in Repo:", user.Company.name);
+      console.log("User Location in Repo:", user.Company.location.name);
     if (!user || !user.Wallet)
       throw new AppError("User or Wallet Not found", StatusCodes.NOT_FOUND);
 
@@ -116,7 +118,6 @@ async function bookMeetingRoom({
       `Booking room ${room.name} for ${slots} slots`,
       transaction
     );
-
 
     //createBooking
     const booking = await bookingRepo.createBooking(
@@ -146,6 +147,8 @@ async function bookMeetingRoom({
         targetType: "MeetingRoomBooking",
         metadata: {
           roomName: room.name,
+          company: user.Company.name,
+          location: user.Company.location.name,
           date,
           startTime,
           endTime,
