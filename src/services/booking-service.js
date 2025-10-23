@@ -100,8 +100,10 @@ async function bookMeetingRoom({
     if (!user || !user.Wallet)
       throw new AppError("User or Wallet Not found", StatusCodes.NOT_FOUND);
 
-    console.log("User Company in Repo:", user.Company.name);
-    console.log("User Location in Repo:", user.Company.location.name);
+    const companyName = user?.Company?.name ?? "N/A";
+    const locationName = user?.Company?.location?.name ?? "N/A";
+    console.log("User Company in Repo:", companyName);
+    console.log("User Location in Repo:", locationName);
     console.log(`${user.name} has Wallet with Balance ${user.Wallet.meeting_room_credits}`);
     console.log(`Booking cost is ${cost} Credits`);
     /// check if user have balance in wallet and in does not below the cost of the meeting.
@@ -148,8 +150,8 @@ async function bookMeetingRoom({
         targetType: "MeetingRoomBooking",
         metadata: {
           roomName: room.name,
-          company: user.Company.name,
-          location: user.Company.location.name,
+          company: companyName,
+          location: locationName,
           date,
           startTime,
           endTime,
