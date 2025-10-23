@@ -96,11 +96,12 @@ async function bookMeetingRoom({
 
     /// get user wallet, throws error if does not exists
     const user = await userRepo.getUserWithWallet(user_id, transaction);
-      console.log("User Company in Repo:", user.Company.name);
-      console.log("User Location in Repo:", user.Company.location.name);
+      
     if (!user || !user.Wallet)
       throw new AppError("User or Wallet Not found", StatusCodes.NOT_FOUND);
 
+    console.log("User Company in Repo:", user.Company.name);
+    console.log("User Location in Repo:", user.Company.location.name);
     console.log(`${user.name} has Wallet with Balance ${user.Wallet.meeting_room_credits}`);
     console.log(`Booking cost is ${cost} Credits`);
     /// check if user have balance in wallet and in does not below the cost of the meeting.
