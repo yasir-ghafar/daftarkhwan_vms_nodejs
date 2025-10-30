@@ -11,7 +11,7 @@ async function createCompany(req, res) {
     try {
         console.log("Getting in controller")
         console.log(req.body);
-        const company  = await CompanyService.createCompany({
+        const company = await CompanyService.createCompany({
             name: req.body.name,
             email: req.body.email,
             contactNumber: req.body.contactNumber,
@@ -32,7 +32,7 @@ async function createCompany(req, res) {
             .status(StatusCodes.CREATED)
             .json(SuccessResponse);
 
-    } catch(error) {
+    } catch (error) {
         console.log(`Error in controller: ${error}`)
         ErrorResponse.error = error;
         return res
@@ -40,6 +40,52 @@ async function createCompany(req, res) {
             .json(ErrorResponse);
     }
 }
+
+///Update Company
+async function editCompany(req, res) {
+    try {
+        console.log("Getting in edit company controller");
+        console.log("Company Id:", req.params);
+        console.log("Company payload:", req.body);
+
+        const { id } = req.params;
+        if (!id) {
+            return res.status(StatusCodes.BAD_REQUEST)
+                .json
+        }
+
+        const updatedData = {
+            name: req.body.name,
+            email: req.body.email,
+            contactNumber: req.body.contactNumber,
+            businessType: req.body.businessType,
+            websiteUrl: req.body.websiteUrl,
+            reference: req.body.reference,
+            cin: req.body.cin,
+            pan: req.body.pan,
+            gstn: req.body.gstn,
+            tan: req.body.tan,
+            billingAddress: req.body.billingAddress,
+            LocationId: req.body.LocationId,
+            locationName: req.body.locationName,
+            status: req.body.status
+        };
+        const company = await CompanyService.updateCompany(id, updatedData);
+        SuccessResponse.data = company;
+        SuccessResponse.message = "Successfully Updated the Company";
+        return res
+            .status(StatusCodes.OK)
+            .json(SuccessResponse);
+            
+    } catch (error) {
+        console.log(`Error in controller: ${error}`)
+        ErrorResponse.error = error;
+        return res
+            .status(StatusCodes.INTERNAL_SERVER_ERROR)
+            .json(ErrorResponse);
+    }
+}
+
 
 /// Get All Companies
 async function getCompanies(req, res) {
@@ -49,7 +95,7 @@ async function getCompanies(req, res) {
         return res
             .status(StatusCodes.OK)
             .json(SuccessResponse);
-    } catch(error) {
+    } catch (error) {
         console.log(`Error: ${error}`);
         ErrorResponse.error = error;
         return res
@@ -63,7 +109,7 @@ async function getCompaniesByLocationId(req, res) {
     try {
         const { id } = req.params;
 
-        if (!id ) {
+        if (!id) {
             return res.status(StatusCodes.BAD_REQUEST).json({
                 success: false,
                 message: 'Location Id is required.'
@@ -75,8 +121,8 @@ async function getCompaniesByLocationId(req, res) {
         SuccessResponse.data = companies;
 
         return res.status(StatusCodes.OK)
-            .json({SuccessResponse});
-    } catch(error) {
+            .json({ SuccessResponse });
+    } catch (error) {
         console.log(error);
         ErrorResponse.error = error;
         return res
@@ -86,9 +132,9 @@ async function getCompaniesByLocationId(req, res) {
 }
 
 /// Get Company by Company Id
-async function  getCompanyById(req, res) {
+async function getCompanyById(req, res) {
     try {
-        const {id} = req.params;
+        const { id } = req.params;
 
         if (!id) {
             return res.status(StatusCodes.BAD_REQUEST).json({
@@ -102,8 +148,8 @@ async function  getCompanyById(req, res) {
         SuccessResponse.data = company;
 
         return res.status(StatusCodes.OK)
-            .json({SuccessResponse});
-    } catch(error) {
+            .json({ SuccessResponse });
+    } catch (error) {
         console.log(error);
         ErrorResponse.error = error;
         return res
@@ -115,7 +161,7 @@ async function  getCompanyById(req, res) {
 /// Delete Company
 async function deletCompany(req, res) {
     try {
-        const {id} = req.body;
+        const { id } = req.body;
 
         if (!id) {
             return res.status(StatusCodes.BAD_REQUEST).json({
@@ -127,7 +173,7 @@ async function deletCompany(req, res) {
         const response = await CompanyService.deleteCompany(id);
 
         return res.status(StatusCodes.OK).json(response);
-    } catch(error) {
+    } catch (error) {
         return res
             .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
             .json({
@@ -141,7 +187,7 @@ async function deletCompany(req, res) {
 /// Update Company Status
 async function updateCompanyStatus(req, res) {
     try {
-        const {id, status } = req.body;
+        const { id, status } = req.body;
         console.log('Company Id:', id);
         console.log('Company Updated Status:', status);
         if (!id) {
@@ -164,7 +210,7 @@ async function updateCompanyStatus(req, res) {
         return res
             .status(StatusCodes.OK)
             .json(SuccessResponse)
-    } catch(error) {
+    } catch (error) {
         return res
             .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
             .json({
@@ -182,7 +228,7 @@ async function updateCompanyStatus(req, res) {
 /// Update Wallet
 async function updateWalletCredits(req, res) {
 
-    
+
     const walletId = req.params.id;
     const { meeting_room_credits, printing_credits } = req.body;
     console.log("getting wallet with id:", walletId);
@@ -191,13 +237,13 @@ async function updateWalletCredits(req, res) {
             meeting_room_credits,
             printing_credits
         });
-        
+
         SuccessResponse.data = updatedWallet;
         SuccessResponse.message = 'Successfully updated wallet';
 
         return res.status(StatusCodes.OK)
             .json(SuccessResponse);
-    } catch(error) {
+    } catch (error) {
         return res
             .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
             .json({
@@ -212,13 +258,13 @@ async function getWalletTransactions(req, res) {
     const walletId = req.params.id;
     try {
         const transactions = await CompanyService.getWalletTransactionsById(walletId);
-        
+
         SuccessResponse.data = transactions;
         SuccessResponse.message = 'Transactions Fetched Successfully';
 
         return res.status(StatusCodes.OK)
             .json(SuccessResponse);
-    } catch(error) {
+    } catch (error) {
         return res
             .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
             .json({
@@ -241,7 +287,7 @@ async function getWalletTransactionsReport(req, res) {
 
         return res.status(StatusCodes.OK)
             .json(SuccessResponse);
-    } catch(error) {
+    } catch (error) {
         return res
             .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
             .json({
@@ -249,7 +295,7 @@ async function getWalletTransactionsReport(req, res) {
                 message: error.message || 'Something went wrong while Fetching Transactions.'
             });
     }
-    
+
 }
 
 
@@ -257,7 +303,9 @@ module.exports = {
     createCompany,
     getCompanies,
     getCompanyById,
+    editCompany,
     deletCompany,
+    editCompany,
     updateCompanyStatus,
     updateWalletCredits,
     getCompaniesByLocationId,

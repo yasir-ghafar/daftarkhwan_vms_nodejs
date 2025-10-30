@@ -31,6 +31,62 @@ async function createCompany(data) {
   }
 }
 
+async function updateCompany(id, data) {
+  console.log(`Reached in company service updateCompany with id: ${id}`);
+
+  const transaction = await sequelize.transaction();
+  try {
+
+    // check if the company exists 
+    const company = await companyRepository.get(id, { transaction });
+    if (!company) {
+      throw new AppError("Company Not found.", StatusCodes.NOT_FOUND);
+    }
+
+    // update company record
+    const [affectedRows] = await companyRepository.update(id, data, { transaction, returning: true });
+
+    if (affectedRows === 0) {
+      throw new AppError("Failed to update company.", StatusCodes.INTERNAL_SERVER_ERROR);
+    }
+
+    const updatedCompany = await companyRepository.get(id, { transaction });
+    // update user status
+
+    if (data.status) {
+      const newStatus = data.status.toLowerCase();
+
+      if (newStatus === 'inactive' || newStatus === 'active') {
+        const [userRowsAffected] = await User.update(
+          { status: newStatus },
+          { where: { company_id: id }, transaction }
+        );
+        console.log(`User status updated for ${userRowsAffected} users.`);
+      }
+    }
+
+    await transaction.commit();
+    return updatedCompany
+
+    
+    // return company;
+  } catch (error) {
+    console.log(`Error in service: ${error}`);
+    if (error.name == "SequelizeValidationError") {
+      let explanation = [];
+      error.errors.array.forEach((err) => {
+        explanation.push(err.message);
+      });
+      console.log(explanation);
+      throw new AppError(
+        "Cannot Update Company",
+        StatusCodes.INTERNAL_SERVER_ERROR
+      );
+    }
+    throw error;
+  }
+}
+
 async function getAllCompanies() {
   try {
     const companies = await companyRepository.getAll({
@@ -136,7 +192,6 @@ async function getCompanyById(id) {
   }
 }
 
-
 async function getCompaniesByLocationId(id) {
   try {
     console.log("Location Id: ", id)
@@ -174,20 +229,17 @@ async function getCompaniesByLocationId(id) {
   }
   
 }
+
 async function updateCompanyStatus(id, status) {
   try {
     const company = await companyRepository.get(id);
-
     if (!company) {
       throw new AppError("Company not found.", StatusCodes.NOT_FOUND);
     }
-
     const updatedCompany = await companyRepository.update(id, { status });
-
-  
-
     return updatedCompany;
   } catch (error) {
+    console.log(`Error in controller: ${error}`);
     if (error.name == "SequelizeValidationError") {
       let explanation = [];
       error.errors.array.forEach((err) => {
@@ -202,9 +254,6 @@ async function updateCompanyStatus(id, status) {
     throw error;
   }
 }
-
-
-
 
 async function updateWalletCreditsService(walletId, updates) {
 
@@ -237,7 +286,6 @@ async function updateWalletCreditsService(walletId, updates) {
         return updatedWallet;
     });
 }
-
 
 async function getWalletTransactionsById(walletId) {
 
@@ -290,6 +338,7 @@ module.exports = {
   getAllCompanies,
   deleteCompany,
   getCompanyById,
+  updateCompany,
   updateCompanyStatus,
   updateWalletCreditsService,
   getCompaniesByLocationId,

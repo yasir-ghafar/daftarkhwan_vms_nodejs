@@ -206,10 +206,17 @@ async function loginUser(email, password) {
     const user = await authRepository.getByEmail(email);
 
     if (!user) {
-      throw new AppError("User Not Found!",
-        StatusCodes.NOT_FOUND);
+      throw new AppError("User Not Found!", StatusCodes.NOT_FOUND);
     }
 
+    const userStatus = user.status?.toLowerCase();
+    if (userStatus !== "active") {
+      throw new AppError(
+        "Your account is inactive. You are not Authorized to log in.",
+        StatusCodes.UNAUTHORIZED
+      );
+    }
+    
     console.log(password);
     console.log(user.password_hash);
     const isMatch = await comparePassword(user.password_hash, password);

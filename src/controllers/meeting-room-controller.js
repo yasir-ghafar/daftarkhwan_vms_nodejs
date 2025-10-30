@@ -163,7 +163,7 @@ async function updateMeetingRoom(req, res) {
         const id = req.params.id;
         openingTime = moment(req.body.openingTime, "hh:mm:ss A").format("HH:mm:ss");
         closingTime = moment(req.body.closingTime, "hh:mm:ss A").format("HH:mm:ss");
-        const meetingRoom = await MeetingRoomService.addMeetingRoomCredits(id, {
+        const meetingRoom = await MeetingRoomService.updateMeetingRoom(id, {
             name: req.body.name,
             creditsPerSlot: req.body.creditsPerSlot,
             pricePerCredit: req.body.pricePerCredit,

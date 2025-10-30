@@ -28,7 +28,8 @@ module.exports = (sequelize, DataTypes) => {
     email: DataTypes.STRING,
     password_hash: DataTypes.STRING,
     company_id: DataTypes.INTEGER,
-    phoneNumber: DataTypes.STRING
+    phoneNumber: DataTypes.STRING,
+    status: DataTypes.ENUM('active', 'active'),
   }, {
     sequelize,
     modelName: 'User',

@@ -20,7 +20,7 @@ router.get('/', CompanyController.getCompanies);
 router.delete('/delete', CompanyController.deletCompany);
 
 router.put('/update-status', CompanyController.updateCompanyStatus);
-
+router.put('/:id', CompanyController.editCompany);
 
 
 module.exports = router;

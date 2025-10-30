@@ -234,7 +234,7 @@ async function deleteAmenity(id) {
   }
 }
 
-async function addMeetingRoomCredits(id, data) {
+async function updateMeetingRoom(id, data) {
   try {
     const meetingRoom = await meetingRoomRepository.update(id, data);
     return meetingRoom;
@@ -501,7 +501,7 @@ module.exports = {
   createAmenity,
   getAllamenities,
   deleteAmenity,
-  addMeetingRoomCredits,
+  updateMeetingRoom,
   getRoomsByLocationId,
   getMeetingRoomWithStatus,
   getMeetingRoomAvailabilityByDate
