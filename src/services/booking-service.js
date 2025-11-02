@@ -1,4 +1,4 @@
-const { sequelize } = require("../models");
+const { sequelize, Location } = require("../models");
 const userRepo = require("../repositories/user-repository");
 const walletRepo = require("../repositories/wallet-repository");
 const activityRepo = require("../repositories/activity-repository");
@@ -63,10 +63,20 @@ async function bookMeetingRoom({
     }
 
     /// check if the meeting room exists.
-    const room = await meetingRoomRepository.get(room_id, transaction);
+    //const room = await meetingRoomRepository.get(room_id, transaction);
+    const room = await meetingRoomRepository.getWithOptions(room_id, {
+      include: [
+    {
+      model: Location,
+      as: 'location',
+      attributes: ['id', 'name']
+    }
+  ]
+    })
     if (!room)
       throw new AppError("Meeting Room Not Found", StatusCodes.NOT_FOUND);
 
+    console.log(room);
     /// check if the slots are aligned with 30 minutes time.
     const slotDurationMins = 30;
     const slots =
@@ -87,7 +97,7 @@ async function bookMeetingRoom({
       { room_id, date, slots, startTime, endTime },
       transaction
     );
-    if (!isAvailable) {
+    if (!isAvailable) { 
       throw new AppError(
         "The selected room is already booked during the requested time.",
         StatusCodes.CONFLICT
@@ -151,7 +161,7 @@ async function bookMeetingRoom({
         metadata: {
           roomName: room.name,
           company: companyName,
-          location: locationName,
+          location: room.location?.name || "N/A",
           date,
           startTime,
           endTime,
