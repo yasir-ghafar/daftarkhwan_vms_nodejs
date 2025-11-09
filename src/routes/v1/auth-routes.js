@@ -35,4 +35,22 @@ router.get('/users/company/:id',
     AuthController.getUsersByCompany
 )
 
+
+router.post('/forgot-password',
+    AuthController.fogotPassword
+)
+
+
+router.post('/verify-otp',
+    AuthController.verifyUserOtp
+)
+
+router.post('/reset-password',
+    AuthMiddlewares.verifyResetToken,
+    AuthController.resetPassword
+)
+
+
+///reset-password
+
 module.exports = router;

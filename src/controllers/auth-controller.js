@@ -43,7 +43,6 @@ async function editUser(req, res) {
 }
 
 async function loginUser(req, res) {
-
     console.log(">>> Hitting /login route", req.body);
     try {
         if (req.body) {
@@ -147,11 +146,99 @@ async function getUsersByCompany(req, res) {
     }
 }
 
+
+async function fogotPassword(req, res) {
+    console.log(">>> Hitting /login route", req.body);
+    try {
+        if (req.body) {
+
+            const {email} = req.body;
+            const otpResponse = await AuthService.generateOtp(email);
+            SuccessResponse.data = otpResponse;
+            console.log(req.body);
+            return res
+            .status(StatusCodes.OK)
+            .json(SuccessResponse)
+        }
+    } catch(error) {
+        console.log("Error in controller: ", error);
+        ErrorResponse.message = error.explanation;
+        ErrorResponse.error = error.explanation;
+        return res
+            .status(error.statusCode)
+            .json(ErrorResponse);    
+    }
+    return SuccessResponse;
+}
+
+async function verifyUserOtp(req, res) {
+    console.log(">>> Hitting /login route", req.body);
+    try {
+        if (req.body) {
+            const {email, otp} = req.body;
+            const otpResponse = await AuthService.verifyOtp(email, otp);
+            SuccessResponse.data = otpResponse;
+            console.log(req.body);
+            return res
+            .status(StatusCodes.OK)
+            .json(SuccessResponse)
+        }
+    } catch(error) {
+        console.log("Error in controller: ", error);
+        ErrorResponse.message = error.explanation;
+        ErrorResponse.error = error.explanation;
+        return res
+            .status(error.statusCode)
+            .json(ErrorResponse);    
+    }
+    return SuccessResponse;
+}
+
+async function resetPassword(req, res) {
+  console.log(">>> Hitting /reset-password", req.body);
+
+  try {
+    const { password } = req.body;
+    const { userId } = req; // ✅ extracted by verifyResetToken middleware
+
+    if (!userId) {
+      return res
+        .status(StatusCodes.UNAUTHORIZED)
+        .json({ message: "Unauthorized: Missing or invalid token" });
+    }
+
+    if (!password) {
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ message: "New password is required" });
+    }
+
+    // ✅ Call service method with userId and new password
+    const response = await AuthService.resetPassword(userId, password);
+
+    SuccessResponse.data = response;
+    return res.status(StatusCodes.OK).json(SuccessResponse);
+
+  } catch (error) {
+    console.error("Error in resetPassword controller:", error);
+    ErrorResponse.message = error.message || "Something went wrong";
+    ErrorResponse.error = error.explanation || error.message;
+
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(ErrorResponse);
+  }
+}
+
+
 module.exports = {
     registerUser,
     loginUser,
     getUsers,
     getUsersByCompany,
     editUser,
-    getUserProfile
+    getUserProfile,
+    fogotPassword,
+    verifyUserOtp,
+    resetPassword
 }

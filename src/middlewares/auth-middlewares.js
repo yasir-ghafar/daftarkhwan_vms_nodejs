@@ -93,9 +93,52 @@ const authorizeRoles = (...allowedRoles) => {
   };
 };
 
+async function verifyResetToken(req, res, next) {
+  try {
+    const authHeader = req.headers['authorization'];
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res
+        .status(StatusCodes.UNAUTHORIZED)
+        .json({ message: 'Unauthorized: No token provided' });
+    }
+
+    const token = authHeader.split(' ')[1];
+
+    // Verify token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, ServerConfig.JWT_SECRET);
+    } catch (err) {
+      if (err.name === 'TokenExpiredError') {
+        return res
+          .status(StatusCodes.UNAUTHORIZED)
+          .json({ message: 'Token has expired. Please request a new one.' });
+      }
+      return res
+        .status(StatusCodes.FORBIDDEN)
+        .json({ message: 'Invalid token' });
+    }
+
+    // Attach decoded info to the request
+    req.userId = decoded.id;
+    req.email = decoded.email;
+
+    console.log(`✅ Token verified for user: ${req.email}`);
+
+    next();
+  } catch (error) {
+    console.error('Error verifying reset token:', error);
+    return res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: 'Server error verifying token' });
+  }
+}
+
+
 module.exports = {
     checkIfUserExists,
     authenticateToken,
     getUserAndGetUserId,
-    authorizeRoles
+    authorizeRoles,
+    verifyResetToken
 }

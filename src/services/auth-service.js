@@ -1,8 +1,9 @@
 const { StatusCodes } = require("http-status-codes");
-const { sequelize, Wallet, Company, Location, User } = require("../models");
+const { sequelize, Wallet, Company, UserOtp, User } = require("../models");
 const { Op } = require("sequelize");
 const argon2 = require("argon2");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 
 const { AuthRepository } = require("../repositories");
 const AppError = require("../utils/error/app-error");
@@ -370,6 +371,139 @@ async function verifyToken(token) {
   return await jwt.verify(token, ServerConfig.JWT_SECRET);
 }
 
+async function  generateOtp(email) {
+  try {
+    const user = await authRepository.getByEmail(email);
+    if (!user) {
+      throw new AppError("User Not Found!", StatusCodes.NOT_FOUND);
+    }
+
+    const otp = crypto.randomInt(100000, 999999).toString();
+
+    const hashedOtp = await argon2.hash(otp);
+    console.log(hashedOtp);
+
+    await UserOtp.create({
+      userId: user.id,
+      email: user.email,
+      otp: hashedOtp,
+      otpExpiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes expiry
+      purpose: "reset_password",
+    });
+
+   return { user, otp} 
+  } catch (error) {
+    if (error.name == "SequelizeValidationError") {
+      let explanation = [];
+      error.errors.array.forEach((err) => {
+        explanation.push(err.message);
+      });
+      console.log(explanation);
+      throw new AppError(
+        "Unable to generate Otp",
+        StatusCodes.INTERNAL_SERVER_ERROR
+      );
+    }
+    throw error;
+  }
+}
+
+async function  verifyOtp(email, otp) {
+  try {
+
+    /// find user
+    const user = await User.findOne({where: {email} });
+    if (!user) {
+      throw new AppError("User Not Found!", StatusCodes.NOT_FOUND);
+    }
+
+    /// get user's otp from UserOtp table
+    const userOtp = await UserOtp.findOne( {
+      where: {
+        userId: user.id,
+        purpose: "reset_password",
+      },
+      order: [["createdAt", "DESC"]],
+    });
+
+    if (!userOtp) {
+       throw new AppError("Otp not found. please request a new one", StatusCodes.BAD_REQUEST);
+    }
+    
+    ///check if the otp is expired
+    if (new Date() > userOtp.otpExpiresAt) {
+      userOtp.destroy();
+      throw new AppError("Otp expired. please request a new one", StatusCodes.BAD_REQUEST);
+    }
+
+    /// verify OTP using Argon2
+    const isMatch = await argon2.verify(userOtp.otp, otp);
+    if (!isMatch) {
+      throw new AppError("Invalid OTP, please try again", StatusCodes.BAD_REQUEST);
+    }
+
+    /// Delete OTP after successfull verification
+    await userOtp.destroy();
+
+    // Generating resetToken
+    const resetToken = jwt.sign(
+      {
+        id: user.id,
+        email: email,
+        name: user.name,
+      },
+      ServerConfig.JWT_SECRET, { expiresIn: "10m" }
+    );
+
+    return {authorization : resetToken};
+
+  } catch (error) {
+    if (error.name == "SequelizeValidationError") {
+      let explanation = [];
+      error.errors.array.forEach((err) => {
+        explanation.push(err.message);
+      });
+      console.log(explanation);
+      throw new AppError(
+        "Unable to verify Otp",
+        StatusCodes.INTERNAL_SERVER_ERROR
+      );
+    }
+    throw error;
+  }
+}
+
+
+async function resetPassword(userId, newPassword) {
+  console.log("🔐 [resetPassword] Resetting password for user:", userId);
+
+  const transaction = await sequelize.transaction();
+  try {
+    const user = await User.findByPk(userId);
+    if (!user) {
+      throw new AppError("User not found", StatusCodes.NOT_FOUND);
+    }
+
+    if (typeof newPassword !== "string" || newPassword.length < 8) {
+      throw new AppError("Password must be at least 8 characters long.", StatusCodes.BAD_REQUEST);
+    }
+
+    const hashedPassword = await hashPassword(newPassword);
+    await user.update({ password_hash: hashedPassword }, { transaction });
+
+    await transaction.commit();
+
+    const safeUser = { ...user.dataValues };
+    delete safeUser.password_hash;
+
+    return { message: "Password reset successful", user: safeUser };
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+}
+
+
 module.exports = {
   createUser,
   editUser,
@@ -379,4 +513,7 @@ module.exports = {
   getUserProfile,
   getAllUsers,
   getAllUsersByCompanyId,
+  generateOtp,
+  verifyOtp,
+  resetPassword
 };

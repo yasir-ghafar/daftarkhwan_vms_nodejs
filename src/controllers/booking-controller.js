@@ -32,7 +32,8 @@ async function cancelBooking(req, res) {
     console.log("Role in controller",req.role);
     const { id } = req.params;
     const userId = req.userId;
-    const isAdmin = req.role === 'admin';
+    const role = req.role?.toLowerCase();
+    const isAdmin = role === 'admin' || role === 'manager';
 
     console.log("User is Admin", isAdmin);
     try {
