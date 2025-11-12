@@ -155,6 +155,7 @@ async function fogotPassword(req, res) {
             const {email} = req.body;
             const otpResponse = await AuthService.generateOtp(email);
             SuccessResponse.data = otpResponse;
+            SuccessResponse.message = "OTP sent successfully to your email."
             console.log(req.body);
             return res
             .status(StatusCodes.OK)
@@ -198,8 +199,8 @@ async function resetPassword(req, res) {
   console.log(">>> Hitting /reset-password", req.body);
 
   try {
-    const { password } = req.body;
-    const { userId } = req; // ✅ extracted by verifyResetToken middleware
+    const { password, confirm_password } = req.body;
+    const { userId, email } = req; // ✅ extracted by verifyResetToken middleware
 
     if (!userId) {
       return res
@@ -214,13 +215,43 @@ async function resetPassword(req, res) {
     }
 
     // ✅ Call service method with userId and new password
-    const response = await AuthService.resetPassword(userId, password);
+    const response = await AuthService.resetPassword(userId, password, confirm_password);
 
     SuccessResponse.data = response;
     return res.status(StatusCodes.OK).json(SuccessResponse);
 
   } catch (error) {
     console.error("Error in resetPassword controller:", error);
+    ErrorResponse.message = error.message || "Something went wrong";
+    ErrorResponse.error = error.explanation || error.message;
+
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(ErrorResponse);
+  }
+}
+
+
+async function resendOtp(req, res) {
+  console.log(">>> Hitting /resend-otp", req.body);
+
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ message: "Email is required to resend OTP" });
+    }
+
+    const result = await AuthService.resendOtp(email);
+
+    SuccessResponse.data = result;
+    SuccessResponse.message = "OTP resent successfully!";
+    return res.status(StatusCodes.OK).json(SuccessResponse);
+
+  } catch (error) {
+    console.error("Error in resendOtp controller:", error);
     ErrorResponse.message = error.message || "Something went wrong";
     ErrorResponse.error = error.explanation || error.message;
 
@@ -240,5 +271,6 @@ module.exports = {
     getUserProfile,
     fogotPassword,
     verifyUserOtp,
-    resetPassword
+    resetPassword,
+    resendOtp
 }
