@@ -276,12 +276,20 @@ async function getWalletTransactions(req, res) {
 }
 
 
+//"start_date": "",
+//    "end_date": ""
+
 async function getWalletTransactionsReport(req, res) {
 
     console.log(req.body);
     const userId = req.body.user_id;
+    const startDate = req.body.start_date;
+    const endDate = req.body.end_date;
+
     try {
-        const records = await CompanyService.getWalletTransactionsReport(userId);
+        console.log('getting here');
+        //const records = await CompanyService.getWalletTransactionsReport(userId);
+        const records = await CompanyService.getBookingReportByUserIdAndDate(userId, startDate, endDate)
         SuccessResponse.data = records;
         SuccessResponse.message = "Successfully Fetched the Report"
 

@@ -1,4 +1,6 @@
-const { Wallet, WalletTransaction, Activity, User } = require('../models');
+const { Wallet, WalletTransaction, Activity, User, sequelize} = require('../models');
+const { Op, where } = require('sequelize'); 
+
 
 async function logActivity(params, transaction) {
     const {
@@ -60,11 +62,47 @@ async function getUserActivitiesDetailed(userId) {
   });
 }
 
+async function getUserActivityDetailsByDate(userId, startDate, endDate, targetType = 'MeetingRoomBooking') {
+
+  console.log("User Id in repo: ", userId);
+  
+  const whereClause = { 
+    userId,
+    targetType
+  };
+  
+  // Filter by metadata.date range if provided
+  if (startDate && endDate) {
+    // Add JSON filtering for the date in metadata
+    whereClause['metadata.date'] = {
+      [Op.between]: [startDate, endDate]
+    };
+  }
+
+  return await Activity.findAll({
+    where: whereClause,
+    include: [
+      {
+        model: User,
+        as: 'user',
+        attributes: ['id', 'name', 'email', 'role']
+      },
+      {
+        model: User,
+        as: 'performedByUser',
+        attributes: ['id', 'name', 'email', 'role']
+      }
+    ],
+    order: [['createdAt', 'DESC']]
+  });
+}
+
 
 module.exports = {
     logActivity,
     getUserActivities,
     getAllActivities,
-    getUserActivitiesDetailed
+    getUserActivitiesDetailed,
+    getUserActivityDetailsByDate
 }
 
