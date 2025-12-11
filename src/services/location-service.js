@@ -3,6 +3,7 @@ const { LocationRepository } = require("../repositories");
 const AppError = require("../utils/error/app-error");
 
 const { MeetingRoom } = require("../models");
+const { getRelativePath, getFileUrl } = require("../utils/file-manager");
 
 const locationRepository = new LocationRepository();
 
@@ -10,7 +11,9 @@ async function createLocation(data) {
   try {
     console.log(` Console in Service: ${data}`);
     const location = await locationRepository.create(data);
-    return location;
+    const updatedLocation = formatLocation(location);
+    console.log("Updated Location: ", updateLocation)
+    return updatedLocation;
   } catch (error) {
     console.log(` Error in Service: ${error}`);
     if (error.name == "SequelizeValidationError") {
@@ -28,6 +31,28 @@ async function createLocation(data) {
   }
 }
 
+// Helper function to format location with image URL
+function formatLocation(location) {
+  if (!location) return null;
+  
+  const locationData = location.toJSON ? location.toJSON() : location;
+  console.log("Location Data:", locationData);
+  
+  // If image is stored as just a filename, convert to full URL
+  if (locationData.image && !locationData.image.includes('://')) {
+    console.log("Creating URL for image:", locationData.image);
+    // Use the folder parameter correctly
+    locationData.imageUrl = getFileUrl(locationData.image, 'locations');
+    console.log("Image URL created:", locationData.imageUrl);
+  } else if (locationData.image) {
+    // If it's already a URL
+    console.log("Image is already a URL");
+    locationData.imageUrl = locationData.image;
+  }
+  
+  console.log("Returning formatted location object.");
+  return locationData;
+}
 
 async function updateLocation(id, data) {
   try {

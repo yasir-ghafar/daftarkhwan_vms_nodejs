@@ -3,6 +3,7 @@ const { LocationService } = require('../services');
 
 const { SuccessResponse, ErrorResponse } = require('../utils/common');
 const { success } = require('../utils/common/error-response');
+const { getFilename } = require('../utils/file-manager');
 
 /**
  * POST : /locations
@@ -17,7 +18,9 @@ async function createLocation(req, res) {
 
     try {
         console.log(req.body);
+        console.log("FILE_NAME",req.file.filename);
 
+        
         const location = await LocationService.createLocation({
             name: req.body.name,
             seatingCapacity: req.body.seatingCapacity,
@@ -30,7 +33,7 @@ async function createLocation(req, res) {
             address: req.body.address,
             state: req.body.state,
             city: req.body.city,
-            image: req.body.image,
+            image: file ? getFilename(file.path) : null,
             lat: req.body.lat,
             lng: req.body.lng
         }); 

@@ -15,11 +15,9 @@ const app = express()
 const PORT = ServerConfig.PORT;
 const REQUEST_TIMEOUT = 10000; // 10 seconds
 
-
 app.use(cors());
 app.use(express.json());
 app.use(timeout(`${REQUEST_TIMEOUT}ms`)); // <-- set request timeout globally
-
 
 app.use((req, res, next) => {
     if (!req.timedout) next();
@@ -27,7 +25,8 @@ app.use((req, res, next) => {
 
 //app.use(express.urlencoded({extended: true}));
 
-app.use('/public', express.static(path.join(__dirname, 'public')));
+app.use('/api/images', express.static(path.join(__dirname, '..', 'public', 'images')));
+
 
 app.use('/api', apiRoutes)
 
@@ -45,4 +44,6 @@ app.use((err, req, res, next) => {
 walletBalanceJob.start();
 app.listen(PORT, () => {
     console.log(`Successfully started the server on PORT: ${PORT}`);
+    console.log(`Access images at:`);
+    console.log(`- http://localhost:${PORT}/api/images/`);
 });

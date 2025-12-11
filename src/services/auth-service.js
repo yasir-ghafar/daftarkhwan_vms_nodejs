@@ -9,6 +9,9 @@ const { AuthRepository } = require("../repositories");
 const AppError = require("../utils/error/app-error");
 const { ServerConfig } = require("../config");
 
+const { mailer } = require('../utils/mailer.js')
+const { otpHtmlTemplate } = require('../utils/email_template.js');
+
 const authRepository = new AuthRepository();
 
 /// create User
@@ -375,7 +378,7 @@ async function  generateOtp(email) {
   try {
     const user = await authRepository.getByEmail(email);
     if (!user) {
-      throw new AppError("User Not Found!", StatusCodes.NOT_FOUND);
+      throw new AppError("No account found for this email address. Please check and try again.!", StatusCodes.NOT_FOUND);
     }
 
     const otp = crypto.randomInt(100000, 999999).toString();
@@ -390,6 +393,8 @@ async function  generateOtp(email) {
       otpExpiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes expiry
       purpose: "reset_password",
     });
+
+    await sendOtpEmail(user.name, user.email, otp);
 
    return { user, otp} 
   } catch (error) {
@@ -474,7 +479,7 @@ async function  verifyOtp(email, otp) {
 }
 
 
-async function resetPassword(userId, newPassword) {
+async function resetPassword(userId, newPassword, confirmPassword) {
   console.log("🔐 [resetPassword] Resetting password for user:", userId);
 
   const transaction = await sequelize.transaction();
@@ -486,6 +491,10 @@ async function resetPassword(userId, newPassword) {
 
     if (typeof newPassword !== "string" || newPassword.length < 8) {
       throw new AppError("Password must be at least 8 characters long.", StatusCodes.BAD_REQUEST);
+    }
+
+    if (newPassword !== confirmPassword) {
+      throw new AppError("Passwords do not match.", StatusCodes.BAD_REQUEST);
     }
 
     const hashedPassword = await hashPassword(newPassword);
@@ -504,6 +513,72 @@ async function resetPassword(userId, newPassword) {
 }
 
 
+async function resendOtp(email) {
+  console.log("📩 [resendOtp] Resending OTP for email:", email);
+  const transaction = await sequelize.transaction();
+
+  try {
+
+    const user = await authRepository.getByEmail(email);
+    if (!user) {
+      throw new AppError("No account found for this email address.", StatusCodes.NOT_FOUND);
+    }
+
+    // Remove any existing OTPs for this user and purpose
+    const deletedCount = await UserOtp.destroy({
+      where: {
+        userId: user.id,
+        purpose: "reset_password",
+      },
+      transaction,
+    });
+    console.log(`[resendOtp] Removed ${deletedCount} old OTP(s) for user ${user.email}`);
+
+    // Generate new OTP
+    const otp = crypto.randomInt(100000, 999999).toString();
+    const hashedOtp = await argon2.hash(otp);
+
+    // Create new OTP entry
+    await UserOtp.create(
+      {
+        userId: user.id,
+        email: user.email,
+        otp: hashedOtp,
+        otpExpiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes expiry
+        purpose: "reset_password",
+      },
+      { transaction }
+    );
+
+    // 📤 Send OTP via email
+    await sendOtpEmail(user.name, user.email, otp);
+
+    await transaction.commit();
+
+    console.log(`[resendOtp] OTP re-sent successfully to ${user.email}`);
+    return { message: "OTP resent successfully to your email." };
+
+  } catch (error) {
+    await transaction.rollback();
+
+    if (error.name === "SequelizeValidationError") {
+      const explanation = error.errors.map((err) => err.message);
+      console.error("[resendOtp] Validation Error:", explanation);
+      throw new AppError("Unable to resend OTP", StatusCodes.INTERNAL_SERVER_ERROR);
+    }
+
+    console.error("💥 [resendOtp] Unexpected Error:", error);
+    throw error;
+  }
+}
+async function sendOtpEmail(name, userEmail, otp) {
+  const subject = "Password Reset OTP";
+  const text = `Your OTP code is: ${otp}\n\nThis code will expire in 5 minutes.`;
+  const html = otpHtmlTemplate({ name, otp, expiryMinutes: 10});
+
+  await mailer.sendEmail(userEmail, subject, text, html);
+}
+
 module.exports = {
   createUser,
   editUser,
@@ -515,5 +590,6 @@ module.exports = {
   getAllUsersByCompanyId,
   generateOtp,
   verifyOtp,
-  resetPassword
+  resetPassword,
+  resendOtp
 };
