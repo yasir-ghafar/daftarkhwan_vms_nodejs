@@ -579,7 +579,6 @@ async function sendOtpEmail(name, userEmail, otp) {
   await mailer.sendEmail(userEmail, subject, text, html);
 }
 
-
 module.exports = {
   createUser,
   editUser,
