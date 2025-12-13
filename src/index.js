@@ -25,7 +25,7 @@ app.use((req, res, next) => {
 
 //app.use(express.urlencoded({extended: true}));
 
-app.use('/api/images', express.static(path.join(__dirname, '..', 'public', 'images')));
+//app.use('/api/images', express.static(path.join(__dirname, '..', 'public', 'images')));
 
 app.use('/api', apiRoutes)
 
