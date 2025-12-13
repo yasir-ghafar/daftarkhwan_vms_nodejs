@@ -17,10 +17,8 @@ async function createLocation(req, res) {
     console.log('Getting in Controller');
 
     try {
-        console.log(req.body);
-        console.log("FILE_NAME",req.file.filename);
-
-        
+        console.log("Body:", body);
+        console.log("FILE_NAME", file);
         const location = await LocationService.createLocation({
             name: req.body.name,
             seatingCapacity: req.body.seatingCapacity,
@@ -43,6 +41,7 @@ async function createLocation(req, res) {
         return res.status(StatusCodes.CREATED)
                 .json(SuccessResponse);
     } catch(error) {
+        console.log(error)
         ErrorResponse.error = error;
         return res.status(StatusCodes.INTERNAL_SERVER_ERROR)
         .json(ErrorResponse);

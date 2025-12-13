@@ -1,20 +1,20 @@
 const { StatusCodes } = require("http-status-codes");
 const { MeetingRoomRepository, AmenityRepository } = require("../repositories");
 const AppError = require("../utils/error/app-error");
-const { MeetingRoom } = require("../models");
-const { log } = require("winston");
 const { Location, Booking, User, Company } = require("../models");
 const { Op } = require("sequelize");
 const moment = require("moment");
+const { getFileUrl } = require("../utils/file-manager");
 
 const meetingRoomRepository = new MeetingRoomRepository();
 const amenityRepository = new AmenityRepository();
 
 async function createMeetingRoom(data) {
-          console.log("Create Meeting Room method is called in ser.");
+  console.log("Create Meeting Room method is called in service.");
   try {
     const meetinRoom = await meetingRoomRepository.create(data);
-    return meetinRoom;
+    const updatedRoomData = formatRoom(meetinRoom);
+    return updatedRoomData;
   } catch (error) {
     if (error.name == "SequelizeValidationError") {
       let explanation = [];
@@ -30,6 +30,32 @@ async function createMeetingRoom(data) {
     throw error;
   }
 }
+
+// Helper function to format meeting room with image URL
+function formatRoom(room) {
+  if (!room) return null;
+
+  const roomData = room.toJSON ? room.toJSON() : room;
+  console.log("Room Data:", roomData);
+
+  try {
+    // if image is stored as just a filename, convert to full URL
+    if (roomData.image && !roomData.image.includes('://')) {
+      console.log("Creating URL for image:", roomData.image);
+      roomData.imageUrl = getFileUrl(roomData.image, 'rooms');
+      console.log("Image URL created:", roomData.imageUrl);
+    } else if (roomData.image) {
+      console.log("Image is already a URL");
+      roomData.imageUrl = roomData.image;
+    }
+  } catch (error) {
+    console.log(error);
+  }
+
+  console.log("Returning formateed room object.");
+  return roomData;
+}
+
 
 async function getMeetingRoomById(id) {
   try {
@@ -70,7 +96,7 @@ async function getMeetingRoomById(id) {
     };
   } catch (error) {
     //console.log("Error in service: ", error);
-    console.log("Error name in service: ",error.name);
+    console.log("Error name in service: ", error.name);
     if (error.name === "SequelizeValidationError") {
       const messages = error.errors.map((err) => err.message);
       throw new AppError(messages.join(", "), StatusCodes.BAD_REQUEST);
@@ -257,9 +283,9 @@ async function updateMeetingRoom(id, data) {
 async function getRoomsByLocationId(locationId) {
   try {
     const rooms = await meetingRoomRepository.getAll({
-      where: { 
+      where: {
         LocationId: locationId,
-        status:  {
+        status: {
           [Op.or]: ["active", "Active"],
         },
       },
@@ -278,7 +304,7 @@ async function getRoomsByLocationId(locationId) {
 
     // Defensive check for null, undefined, or empty result
     if (!Array.isArray(rooms) || rooms.length === 0) {
-      throw new AppError("No Meeting Room found for the given Location",StatusCodes.NOT_FOUND);
+      throw new AppError("No Meeting Room found for the given Location", StatusCodes.NOT_FOUND);
     }
 
     const roomsWithSlots = rooms.map((room) => {
@@ -370,7 +396,7 @@ async function getMeetingRoomWithStatus(id) {
     };
   } catch (error) {
     //console.log("Error in service: ", error);
-    console.log("Error name in service: ",error.name);
+    console.log("Error name in service: ", error.name);
     if (error.name === "SequelizeValidationError") {
       const messages = error.errors.map((err) => err.message);
       throw new AppError(messages.join(", "), StatusCodes.BAD_REQUEST);
@@ -438,7 +464,7 @@ async function getMeetingRoomAvailabilityByDate(id, date) {
 
 function calculateAvailableSlots(room, bookings = [], date = null) {
   // Use given date or fallback to today
-  const targetDate = date 
+  const targetDate = date
     ? moment(date, "YYYY-MM-DD").format("YYYY-MM-DD")
     : moment().format("YYYY-MM-DD");
 

@@ -27,7 +27,6 @@ app.use((req, res, next) => {
 
 app.use('/api/images', express.static(path.join(__dirname, '..', 'public', 'images')));
 
-
 app.use('/api', apiRoutes)
 
 app.use((err, req, res, next) => {
@@ -46,4 +45,4 @@ app.listen(PORT, () => {
     console.log(`Successfully started the server on PORT: ${PORT}`);
     console.log(`Access images at:`);
     console.log(`- http://localhost:${PORT}/api/images/`);
-});
+}); 

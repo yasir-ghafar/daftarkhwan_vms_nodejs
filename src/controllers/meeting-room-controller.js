@@ -5,10 +5,15 @@ const { success } = require('../utils/common/error-response');
 const { Console } = require('winston/lib/winston/transports');
 const { json } = require('sequelize');
 const moment = require('moment');
+const { getFilename } = require('../utils/file-manager');
 
 async function createMeetingRoom(req, res) {
     console.log("create Meeting Room method is called.");
+    const { body, file } = req;
+    
     try {
+        console.log("Body:", body);
+        console.log("FILE_NAME", file);
         openingTime = moment(req.body.openingTime, "hh:mm:ss A").format("HH:mm:ss");
         closingTime = moment(req.body.closingTime, "hh:mm:ss A").format("HH:mm:ss");
         const room = await MeetingRoomService.createMeetingRoom({
@@ -16,7 +21,7 @@ async function createMeetingRoom(req, res) {
             creditsPerSlot: req.body.creditsPerSlot,
             pricePerCredit: req.body.pricePerCredit,
             seatingCapacity: req.body.seatingCapacity,
-            image: req.body.image,
+            image: file ? getFilename(file.path) : null,
             openingTime: openingTime,
             closingTime: closingTime,
             floor: req.body.floor,

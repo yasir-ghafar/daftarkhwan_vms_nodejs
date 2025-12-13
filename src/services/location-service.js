@@ -3,7 +3,7 @@ const { LocationRepository } = require("../repositories");
 const AppError = require("../utils/error/app-error");
 
 const { MeetingRoom } = require("../models");
-const { getRelativePath, getFileUrl } = require("../utils/file-manager");
+const { getFileUrl } = require("../utils/file-manager");
 
 const locationRepository = new LocationRepository();
 
