@@ -1,14 +1,14 @@
 const express = require('express');
 const { MeetingRoomController } = require('../../controllers');
 const { AuthMiddlewares, uploadMiddleware } = require('../../middlewares');
-//const {uploadMiddlewares} = require('../../middlewares/upload-middlewares');
+const {uploadMiddlewares} = require('../../middlewares/upload-middlewares');
 
 const router = express.Router();
 
 router.post('/',
     AuthMiddlewares.getUserAndGetUserId,
     AuthMiddlewares.authorizeRoles('admin'),
-    //uploadMiddlewares.meetingRoomImage,
+    uploadMiddlewares.meetingRoomImage,
     MeetingRoomController.createMeetingRoom);
 
 router.get('/status/:id', MeetingRoomController.getMeetingRoomStatus);

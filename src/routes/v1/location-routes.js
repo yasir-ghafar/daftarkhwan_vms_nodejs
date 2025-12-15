@@ -1,7 +1,7 @@
 const express = require('express');
 const { LocationController } = require('../../controllers');
 const { AuthMiddlewares,} = require('../../middlewares');
-//const { uploadMiddlewares } = require('../../middlewares/upload-middlewares');
+const { uploadMiddlewares } = require('../../middlewares/upload-middlewares');
 const router = express.Router();
 
 // /api/v1/locations POST
@@ -9,7 +9,7 @@ router.post(
     '/',
     AuthMiddlewares.getUserAndGetUserId,
     AuthMiddlewares.authorizeRoles('admin'),
-    //uploadMiddlewares.locationImage,
+    uploadMiddlewares.locationImage,
     LocationController.createLocation,
     );
 
