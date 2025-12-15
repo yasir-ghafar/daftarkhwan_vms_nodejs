@@ -2,6 +2,9 @@ const nodemailer = require("nodemailer");
 
 class Mailer {
   constructor() {
+
+    
+
     this.transporter = nodemailer.createTransport({
       service: "gmail",
       host: process.env.MAIL_HOST,
@@ -15,6 +18,11 @@ class Mailer {
   }
 
   async sendEmail(to, subject, text, html = null) {
+    console.log("Email Server Info", {
+      user: process.env.EMAIL,
+      pass: !!process.env.EMAIL_PASSWORD,
+      });
+
     try {
       const mailOptions = {
         from: process.env.EMAIL,
@@ -23,7 +31,6 @@ class Mailer {
         text,
         html
       };
-
       const info = await this.transporter.sendMail(mailOptions);
       console.log("✅ Email sent:", info.messageId);
       return info;
