@@ -93,6 +93,41 @@ const createUploader = (options = {}) => {
     });
 };
 
+const handleUploadError = (err, req, res, next) => {
+    if (!err) return next();
+
+    let statusCode = 400;
+    let message = 'File upload failed';
+
+    // Multer-specific errors
+    if (err instanceof multer.MulterError) {
+        switch (err.code) {
+            case 'LIMIT_FILE_SIZE':
+                message = 'File size exceeds allowed limit';
+                break;
+            case 'LIMIT_FILE_COUNT':
+                message = 'Too many files uploaded';
+                break;
+            case 'LIMIT_UNEXPECTED_FILE':
+                message = 'Unexpected file field';
+                break;
+            default:
+                message = err.message;
+        }
+    }
+    // Custom uploader errors
+    else if (err.message) {
+        message = err.message;
+    }
+
+    return res.status(statusCode).json({
+        success: false,
+        error: message
+    });
+};
+
+
 module.exports = {
-    createUploader
+    createUploader,
+    handleUploadError
 };
