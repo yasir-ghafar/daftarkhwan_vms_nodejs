@@ -56,7 +56,13 @@ async function cancelBooking(req, res) {
 async function getBookings(req, res) {
      console.log('getting in controller: getBookings');
     try {
-        const bookings = await bookingService.getAllBookings();
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const offset = (page -1) * limit;
+        console.log(`req params: ${page} and ${limit}`);
+        const bookings = await bookingService.getAllBookings(limit, offset);
+
         SuccessResponse.data = bookings;
         return res
             .status(StatusCodes.OK)
@@ -116,7 +122,6 @@ async function bookigsByRoomAndDate(req, res) {
             .json(ErrorResponse);
     }
 }
-
 
 module.exports = {
     createBooking,

@@ -48,7 +48,6 @@ async function areSlotsAvailable({ room_id, date, slots, startTime, endTime }, t
   return results.length === 0;
 }
 
-
 async function getBookings() {
   try {
     return await Booking.findAll({
@@ -85,6 +84,57 @@ async function getBookings() {
     throw error;
   }
 }
+
+
+async function getBookingsWithPagination(limit, offset) {
+  try {
+
+    const {count, rows: bookings } =  await Booking.findAndCountAll({
+      include: [
+        {
+          model: MeetingRoom,
+          as: 'Room',
+          attributes: ['id', 'name'],
+          include: [
+            {
+              model: Location,
+              as: 'location',
+              attributes: ['id', 'name']
+            }
+          ]
+        },
+        {
+          model: User,
+          as: 'User',
+          attributes: ['id', 'name'],
+          include: [
+            {
+              model: Company,
+              as: 'Company',
+              attributes: ['id', 'name']
+            }
+          ]
+        }
+      ],
+      order: [['date', 'DESC']],
+      limit: limit,
+      offset: offset,
+      distinct: true // important for correct count with indcludes
+    });
+
+    return {
+      total_items: count,
+      total_pages: Math.ceil(count / limit),
+      current_page: Math.floor(offset / limit) + 1,
+      page_size: limit,
+      bookings: bookings
+    }
+  } catch (error) {
+    Logger.error('Something went wrong in Booking Repo: getBookings', error);
+    throw error;
+  }
+}
+
 
 async function getBookingsByUserId(userId) {
   try {
@@ -254,5 +304,6 @@ module.exports = {
   deleteBooking,
   getBookingsByRoomAndDate,
   getBookingsByMeetingRoomId,
-  getBookingsByUserId
+  getBookingsByUserId,
+  getBookingsWithPagination
 };
