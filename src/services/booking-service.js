@@ -184,10 +184,11 @@ async function bookMeetingRoom({
 }
 
 /// Get All Bookings
-async function getAllBookings() {
+async function getAllBookings(limit, offset) {
     try {
-        const bookings = await bookingRepo.getBookings();
-        return bookings
+        //const bookings = await bookingRepo.getBookings();
+        const result = await bookingRepo.getBookingsWithPagination(limit, offset);
+        return result;
     } catch(error) {
         if (error.name == "SequelizeValidationError") {
       let explanation = [];

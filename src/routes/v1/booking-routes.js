@@ -4,11 +4,15 @@ const { AuthMiddlewares } = require('../../middlewares');
 
 const router = express.Router();
 
+/// Get booking by User Id
+/// takes user id as query parameter
 router.get('/user/:id',
     AuthMiddlewares.getUserAndGetUserId,
     AuthMiddlewares.authorizeRoles('admin', 'member'),
     BookingController.getBookingsByUserId);
 
+
+/// Get Bookings by room id and date
 router.get('/by-room-and-date',
     BookingController.bookigsByRoomAndDate);
 
