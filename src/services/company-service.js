@@ -4,7 +4,7 @@ const { CompanyRepository } = require("../repositories");
 const walletRepository = require("../repositories/wallet-repository");
 const activityRepository = require("../repositories/activity-repository");
 const AppError = require("../utils/error/app-error");
-const { User, Wallet, Location } = require('../models');
+const { User, Wallet, CompanyWallet, Location } = require('../models');
 
 const companyRepository = new CompanyRepository();
 
@@ -29,6 +29,47 @@ async function createCompany(data) {
     throw error;
   }
 }
+
+//new method to create wallet when a company is creted.
+
+async function createCompanyWithWallet(data) {
+  console.log(`reached in company service: ${data}`);
+  const transaction = await sequelize.transaction();
+  try {
+    const company = await companyRepository.create(data, { transaction });
+
+    if (company) {
+      await CompanyWallet.create({
+        company_id: company.id,
+        auto_renewal: true,
+        monthly_credits: 20
+      },
+      { transaction }
+    );
+    }
+
+    await transaction.commit();
+
+    return company;
+  } catch (error) {
+    await transaction.rollback();
+    console.log(`Error in controller: ${error}`);
+    if (error.name == "SequelizeValidationError") {
+      let explanation = [];
+      error.errors.array.forEach((err) => {
+        explanation.push(err.message);
+      });
+      console.log(explanation);
+      throw new AppError(
+        "Cannot create Company",
+        StatusCodes.INTERNAL_SERVER_ERROR
+      );
+    }
+    throw error;
+  }
+}
+
+
 
 async function updateCompany(id, data) {
   console.log(`Reached in company service updateCompany with id: ${id}`);
@@ -351,7 +392,6 @@ async function getBookingReportByUserIdAndDate(userId, startDate, endDate) {
     }
     throw error;
   }
-  
 }
 
 module.exports = {
@@ -365,5 +405,6 @@ module.exports = {
   getCompaniesByLocationId,
   getWalletTransactionsById,
   getWalletTransactionsReport,
-  getBookingReportByUserIdAndDate
+  getBookingReportByUserIdAndDate,
+  createCompanyWithWallet
 };

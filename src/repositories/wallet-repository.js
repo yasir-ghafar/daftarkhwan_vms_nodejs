@@ -1,4 +1,4 @@
-const { Wallet, WalletTransaction, } = require('../models');
+const { Wallet, WalletTransaction, Company, CompanyWallet  } = require('../models');
 const CrudRepository = require('./crud-repository');
 
 async function updateWalletBalance(wallet, amount, transaction) {
@@ -48,52 +48,7 @@ async function getWalletTransactions(walletId, ) {
     return transactions;
 }
 
-
-// async function getAllWallets(transaction) {
-//     console.log('Fetching all wallets');
-
-//     const wallets = await Wallet.findAll({
-//         include: [
-//             {
-//                 association: 'User', // optional — only works if you defined Wallet.belongsTo(models.User)
-//                 attributes: ['id', 'name', 'email'] // include basic user details if you want
-//             }
-//         ],
-//         order: [['createdAt', 'DESC']], // latest first
-//         transaction
-//     });
-
-//     return wallets;
-// }
-
-
-// async function resetWalletBalance(walletId, transaction) {
-//     console.log(`Resetting wallet balance for wallet ID: ${walletId}`);
-
-//     // Fetch wallet in transaction scope
-//     const wallet = await Wallet.findByPk(walletId, { transaction });
-//     if (!wallet) throw new Error(`Wallet with ID ${walletId} not found`);
-
-//     // Reset meeting room credits to monthly credits value
-//     wallet.meeting_room_credits = Number(wallet.monthly_credits) || 0;
-
-//     // Save the updated wallet
-//     await wallet.save({ transaction });
-
-//     // Log the transaction (optional, for audit trail)
-//     await WalletTransaction.create({
-//         wallet_id: wallet.id,
-//         type: 'RESET',
-//         amount: wallet.meeting_room_credits,
-//         reason: 'Monthly meeting room credits reset',
-//     }, { transaction });
-
-//     console.log(`Wallet ${walletId} reset successfully.`);
-//     return wallet;
-// }
-
-
-/// this method will get all the wallets available and one by one will 
+/// this method will get all the wallets available and one by one 
 async function resetAllWalletBalances(transaction) {
     console.log('Starting reset for all wallet balances');
 
@@ -128,6 +83,27 @@ async function resetAllWalletBalances(transaction) {
 }
 
 
+async function getCompanyWalletByCompanyId(companyId, transaction) {
+  if (!companyId) {
+    throw new Error('companyId is required');
+  }
+
+  return CompanyWallet.findOne({
+    where: { company_id: companyId },
+    transaction,
+    lock: transaction?.LOCK?.UPDATE,
+  });
+}
+
+
+/// update company wallet balance
+async function updateCompanyWalletBalance(wallet, amount, transaction) {
+    console.log(`Wallet Amount to be deducted. ${amount}`);
+    console.log(`Wallet: ${wallet.id}`);
+    console.log(`Monthly Room Credits Available: ${wallet.meeting_room_credits}`);
+    wallet.meeting_room_credits = Number(wallet.meeting_room_credits) + Number(amount);
+    await wallet.save({transaction});
+}
 
 
 module.exports = {
@@ -135,5 +111,7 @@ module.exports = {
     logWalletTransaction,
     updatewalletCredits,
     getWalletTransactions,
-    resetAllWalletBalances
+    resetAllWalletBalances,
+    getCompanyWalletByCompanyId,
+    updateCompanyWalletBalance
 }

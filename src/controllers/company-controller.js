@@ -41,6 +41,42 @@ async function createCompany(req, res) {
     }
 }
 
+/// Create Company
+/// with wallet id
+/// new companies will be created with the wallet, params required. companyId, 
+async function createCompanyWithWallet(req, res) {
+    try {
+        console.log("Getting in controller")
+        console.log(req.body);
+        const company = await CompanyService.createCompanyWithWallet({
+            name: req.body.name,
+            email: req.body.email,
+            contactNumber: req.body.contactNumber,
+            businessType: req.body.businessType,
+            websiteUrl: req.body.websiteUrl,
+            reference: req.body.reference,
+            cin: req.body.cin,
+            pan: req.body.pan,
+            gstn: req.body.gstn,
+            tan: req.body.tan,
+            billingAddress: req.body.billingAddress,
+            LocationId: req.body.LocationId,
+            locationName: req.body.locationName,
+            status: req.body.status
+        });
+        SuccessResponse.data = company;
+        return res
+            .status(StatusCodes.CREATED)
+            .json(SuccessResponse);
+
+    } catch (error) {
+        console.log(`Error in controller: ${error}`)
+        ErrorResponse.error = error;
+        return res
+            .status(StatusCodes.INTERNAL_SERVER_ERROR)
+            .json(ErrorResponse);
+    }
+}
 ///Update Company
 async function editCompany(req, res) {
     try {
@@ -318,6 +354,7 @@ module.exports = {
     updateWalletCredits,
     getCompaniesByLocationId,
     getWalletTransactions,
-    getWalletTransactionsReport
+    getWalletTransactionsReport,
+    createCompanyWithWallet
 
 }

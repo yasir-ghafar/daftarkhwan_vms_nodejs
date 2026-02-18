@@ -5,6 +5,7 @@ const { Op, where } = require('sequelize');
 async function logActivity(params, transaction) {
     const {
         userId,
+        companyId,
         action,
         targetId = null,
         targetType = null,
@@ -17,6 +18,7 @@ async function logActivity(params, transaction) {
     return await Activity.create(
         {
             userId,
+            companyId,
             action,
             targetId,
             targetType,

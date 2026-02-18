@@ -20,6 +20,8 @@ router.get('/',
     AuthMiddlewares.getUserAndGetUserId,
     BookingController.getBookings);
 
+
+/// Create Booking Route
 router.post('/',
     AuthMiddlewares.getUserAndGetUserId,
     AuthMiddlewares.authorizeRoles('admin', 'manager', 'member'),

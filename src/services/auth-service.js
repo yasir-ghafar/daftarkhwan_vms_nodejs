@@ -33,6 +33,7 @@ async function createUser(userData) {
       await Wallet.create(
         {
           user_id: user.id,
+          company_id: user.company_id,
           auto_renewal: userData.auto_renew
         },
         { transaction }

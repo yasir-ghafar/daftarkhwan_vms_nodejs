@@ -11,7 +11,6 @@ const { MeetingRoomRepository } = require("../repositories");
 
 const meetingRoomRepository = new MeetingRoomRepository();
 
-
 /// Utility Method Required In Repo
 function validateSlotTiming(startTime, endTime) {
   const start = new Date(startTime);
@@ -52,7 +51,7 @@ async function bookMeetingRoom({
 }) {
   console.log({ booking_user, user_id, room_id });
   const transaction = await sequelize.transaction();
-
+ 
   try {
     /// Check if the booking time is according to slots
     if (!validateSlotTiming(startTime, endTime)) {
@@ -168,7 +167,8 @@ async function bookMeetingRoom({
           totalCredits: cost,
           slots
         },
-        performedBy: booking_user || user_id
+        performedBy: booking_user || user_id,
+        companyId: company_id,
       },
       transaction
     );
@@ -183,6 +183,158 @@ async function bookMeetingRoom({
   }
 }
 
+
+/// Method to create a booking against a meeting room
+async function bookMeetingRoomWithCompanyWallet({
+  booking_user,
+  date,
+  startTime,
+  endTime,
+  location_id,
+  room_id,
+  company_id,
+  user_id,
+  status,
+  title,
+  description
+}) {
+  console.log({ booking_user, user_id, room_id });
+  const transaction = await sequelize.transaction();
+
+  try {
+    /// Check if the booking time is according to slots
+    if (!validateSlotTiming(startTime, endTime)) {
+      throw new AppError(
+        "Booking must be between 9:00 AM and 9:00 PM",
+        StatusCodes.BAD_REQUEST
+      );
+    }
+
+    /// check if the meeting room exists.
+    //const room = await meetingRoomRepository.get(room_id, transaction);
+    const room = await meetingRoomRepository.getWithOptions(room_id, {
+      include: [
+    {
+      model: Location,
+      as: 'location',
+      attributes: ['id', 'name']
+    }
+  ]
+    })
+    if (!room)
+      throw new AppError("Meeting Room Not Found", StatusCodes.NOT_FOUND);
+
+    console.log(room);
+    /// check if the slots are aligned with 30 minutes time.
+    const slotDurationMins = 30;
+    const slots =
+      (new Date(endTime) - new Date(startTime)) /
+      (1000 * 60 * slotDurationMins);
+    console.log(`Total Slots ${slots}`);
+    if (!Number.isInteger(slots) || slots <= 0) {
+      throw new AppError(
+        "Time must align with 30-minute slot boundaries",
+        StatusCodes.BAD_REQUEST
+      );
+    }
+    // calculate how may credits will cost this booking.
+    const cost = slots * room.creditsPerSlot;
+
+    /// check if slots are available. this will check on the bases of start time and end time. and number of slots
+    const isAvailable = await bookingRepo.areSlotsAvailable(
+      { room_id, date, slots, startTime, endTime },
+      transaction
+    );
+    if (!isAvailable) { 
+      throw new AppError(
+        "The selected room is already booked during the requested time.",
+        StatusCodes.CONFLICT
+      );
+    }
+
+    /// get user wallet, throws error if does not exists
+    const user = await userRepo.getUserWithWallet(user_id, transaction);
+    const companyWallet = await walletRepo.getCompanyWalletByCompanyId(company_id, transaction);
+      
+    if (!user)
+      throw new AppError("User Not found", StatusCodes.NOT_FOUND);
+
+    if (!companyWallet)
+      throw new AppError("Wallet Not found", StatusCodes.NOT_FOUND);
+
+    const companyName = user?.Company?.name ?? "N/A";
+    const locationName = user?.Company?.location?.name ?? "N/A";
+    console.log("User Company in Repo:", companyName);
+    console.log("User Location in Repo:", locationName);
+    console.log(`${user.name} has Wallet with Balance ${companyWallet.meeting_room_credits}`);
+    console.log(`Booking cost is ${cost} Credits`);
+    /// check if user have balance in wallet and in does not below the cost of the meeting.
+    if (companyWallet.meeting_room_credits < cost)
+      throw new AppError("Insufficient wallet balance", StatusCodes.FORBIDDEN);
+
+    //Deduct balance
+    await walletRepo.updateCompanyWalletBalance(companyWallet, -cost, transaction);
+
+    //Log transaction
+    await walletRepo.logWalletTransaction(
+      companyWallet.id,
+      "debit",
+      cost,
+      `Booking room ${room.name} for ${slots} slots`,
+      transaction
+    );
+
+    //createBooking
+    const booking = await bookingRepo.createBooking(
+      {
+        date: date,
+        startTime,
+        endTime: endTime,
+        slots: slots,
+        location_id: location_id,
+        room_id: room_id,
+        company_id: company_id,
+        user_id: user_id,
+        total_credits: cost,
+        status: status,
+        title: title,
+        description: description
+      },
+      transaction
+    );
+
+    // 1 Log activity (atomic with the transaction)
+    await activityRepo.logActivity(
+      {
+        userId: user_id,
+        action: "BOOKING_CREATED",
+        targetId: booking.id,
+        targetType: "MeetingRoomBooking",
+        metadata: {
+          roomName: room.name,
+          company: companyName,
+          location: room.location?.name || "N/A",
+          date,
+          startTime,
+          endTime,
+          totalCredits: cost,
+          slots
+        },
+        performedBy: booking_user || user_id,
+        companyId: company_id,
+      },
+      transaction
+    );
+
+
+    await transaction.commit();
+    return booking;
+  } catch (error) {
+    console.log(error);
+    await transaction.rollback();
+    throw error;
+  }
+}
 /// Get All Bookings
 async function getAllBookings() {
     try {
@@ -374,4 +526,5 @@ module.exports = {
   cancelBooking,
   getBookingsByRoomIdAndDate,
   getAllBookingsByUserId,
+  bookMeetingRoomWithCompanyWallet
 };

@@ -26,6 +26,29 @@ async function createBooking(req, res) {
     }
 }
 
+/// Create a booking
+async function createBookingWithCompanyWallet(req, res) {
+    const { date, startTime, endTime, location_id, room_id, company_id, user_id, status, title, description } = req.body;
+    const booking_user = req.userId;
+    console.log("UserID in Request: ", req.userId);
+
+    try {
+        const booking = await bookingService.bookMeetingRoomWithCompanyWallet(
+            { booking_user, date, startTime, endTime, location_id, room_id, company_id, user_id, status, title, description }
+        );
+        SuccessResponse.data = booking;
+        SuccessResponse.message = "Booking Created Successfully!"
+        return res
+            .status(StatusCodes.CREATED)
+            .json(SuccessResponse);
+    } catch(error) {
+        return res
+            .status(error.statusCode)
+            .json(error);
+    }
+}
+
+
 /// Cancel Booking
 async function cancelBooking(req, res) {
     console.log("userId in controller",req.userId);
@@ -123,5 +146,6 @@ module.exports = {
     getBookings,
     cancelBooking,
     bookigsByRoomAndDate,
-    getBookingsByUserId
+    getBookingsByUserId,
+    createBookingWithCompanyWallet
 }

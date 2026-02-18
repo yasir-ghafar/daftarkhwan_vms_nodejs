@@ -19,6 +19,7 @@ module.exports = (sequelize, DataTypes) => {
   }
   Activity.init({
     userId: DataTypes.INTEGER,
+    companyId: DataTypes.INTEGER,
     action: DataTypes.STRING,
     targetId: DataTypes.STRING,
     targetType: DataTypes.STRING,
