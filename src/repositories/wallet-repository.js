@@ -24,6 +24,10 @@ async function updatewalletCredits(walletId, updates, transaction) {
 
     if (!wallet) throw new Error(`Wallet with ID ${walletId} not found`);
 
+    if (Number(wallet.monthly_credits) === 0) {
+        wallet.monthly_credits = Number(wallet.monthly_credits) + Number(updates.meeting_room_credits)
+    }
+
     if (typeof updates.meeting_room_credits !== 'undefined') {
         wallet.meeting_room_credits = Number(wallet.meeting_room_credits) + Number(updates.meeting_room_credits);
     }

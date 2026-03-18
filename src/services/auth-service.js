@@ -6,6 +6,8 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 
 const { AuthRepository } = require("../repositories");
+const userRepository = require("../repositories/user-repository");
+
 const AppError = require("../utils/error/app-error");
 const { ServerConfig } = require("../config");
 
@@ -208,7 +210,8 @@ async function checkUserAlreadyExists(email) {
 async function loginUser(email, password) {
   console.log(">>> Hitting /Login User in Service");
   try {
-    const user = await authRepository.getByEmail(email);
+    //const user = await authRepository.getByEmail(email);
+    const user = await userRepository.loginUser(email);
 
     if (!user) {
       throw new AppError("User Not Found!", StatusCodes.NOT_FOUND);

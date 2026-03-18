@@ -517,9 +517,6 @@ async function getBookingsByRoomIdAndDate(roomId, date) {
 }
 
 
-
-
-
 module.exports = {
   bookMeetingRoom,
   getAllBookings,
