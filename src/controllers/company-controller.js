@@ -228,7 +228,6 @@ async function updateCompanyStatus(req, res) {
 /// Update Wallet
 async function updateWalletCredits(req, res) {
 
-
     const walletId = req.params.id;
     const { meeting_room_credits, printing_credits } = req.body;
     console.log("getting wallet with id:", walletId);
@@ -236,7 +235,7 @@ async function updateWalletCredits(req, res) {
         const updatedWallet = await CompanyService.updateWalletCreditsService(walletId, {
             meeting_room_credits,
             printing_credits
-        });
+        }); 
 
         SuccessResponse.data = updatedWallet;
         SuccessResponse.message = 'Successfully updated wallet';

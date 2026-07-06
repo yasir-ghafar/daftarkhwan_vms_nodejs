@@ -3,5 +3,6 @@ module.exports = {
     AuthService: require('./auth-service'),
     CompanyService: require('./company-service'),
     MemberService: require('./member-service'),
-    MeetingRoomService: require('./meeting-room-service')
+    MeetingRoomService: require('./meeting-room-service'),
+    WalletService: require('./wallet-service')
 }

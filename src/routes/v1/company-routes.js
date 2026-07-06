@@ -1,12 +1,16 @@
 const express = require('express');
 
 const { CompanyController } = require('../../controllers');
-
+const { walletMiddleware } = require('../../middlewares');
 const router = express.Router();
 
 router.get('/wallet/transactions/:id', CompanyController.getWalletTransactions);
+
 router.post('/wallet/report', CompanyController.getWalletTransactionsReport);
-router.put('/wallets/:id', CompanyController.updateWalletCredits);
+
+router.put('/wallets/:id',
+    walletMiddleware.checkWalletMonthlyBalance,
+    CompanyController.updateWalletCredits);
 
 router.post('/', CompanyController.createCompany);
 

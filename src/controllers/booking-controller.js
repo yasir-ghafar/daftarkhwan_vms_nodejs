@@ -3,7 +3,6 @@ const bookingService = require('../services/booking-service');
 const { SuccessResponse, ErrorResponse } = require('../utils/common');
 
 
-
 /// Create a booking
 async function createBooking(req, res) {
     const { date, startTime, endTime, location_id, room_id, company_id, user_id, status, title, description } = req.body;
@@ -21,8 +20,11 @@ async function createBooking(req, res) {
             .json(SuccessResponse);
     } catch(error) {
         return res
-            .status(error.statusCode)
-            .json(error);
+            .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+            .json({
+                success: false,
+                message: error.message || 'Something went wrong.'
+            });
     }
 }
 
