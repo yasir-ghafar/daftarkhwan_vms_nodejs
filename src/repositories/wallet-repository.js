@@ -7,6 +7,41 @@ async function updateWalletBalance(wallet, amount, transaction) {
     await wallet.save({transaction});
 }
 
+async function getWalletById(walletId, transaction) {
+    console.log(`Wallet Id: ${walletId}`);
+    const wallet = await Wallet.findByPk(walletId, {transaction});
+
+    if (!wallet) throw new Error('Wallet not found');
+    
+    console.log(`Wallet Id: ${wallet.monthly_credits}`);
+    return wallet;
+}
+
+async function updateMonthlyCredits(walletId, credits, transaction) {
+
+    console.log(`reached in Repo with wallet id: ${walletId} and new Meeting Room Credits: ${credits}`);
+    const wallet = await Wallet.findByPk(walletId, {
+        transaction,
+        lock: transaction.LOCK.UPDATE
+    });
+
+    if (!wallet) throw new Error('Wallet Not Found');
+
+    console.log(`Monthly Cretis are: ${wallet.monthly_credits} and auto renewal is: ${wallet.auto_renewal}`);
+    
+    if (Number(wallet.monthly_credits) === 0 && Boolean(wallet.auto_renewal) === true) {
+        console.log(`credits param: ${credits}, type: ${typeof credits}`);
+        console.log(`wallet.monthly_credits before: ${wallet.monthly_credits}, type: ${typeof wallet.monthly_credits}`);
+        wallet.monthly_credits = Number(wallet.monthly_credits) + Number(credits);
+        console.log(`wallet.monthly_credits after: ${wallet.monthly_credits}`);
+    }
+
+    console.log(`Update Monthly Credits are: ${wallet.monthly_credits}`);
+    await wallet.save({transaction});
+
+    return wallet;
+}
+
 async function logWalletTransaction(walletId, type, amount, reason, transaction) {
     return await WalletTransaction.create({
         wallet_id: walletId,
@@ -131,9 +166,11 @@ async function resetAllWalletBalances(transaction) {
 
 
 module.exports = {
+    getWalletById,
     updateWalletBalance,
     logWalletTransaction,
     updatewalletCredits,
     getWalletTransactions,
-    resetAllWalletBalances
+    resetAllWalletBalances,
+    updateMonthlyCredits
 }

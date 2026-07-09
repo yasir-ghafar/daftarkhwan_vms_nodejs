@@ -16,6 +16,22 @@ async function resetAllWalletBalancesService() {
     }
 }
 
+
+async function checkAndUpdateMonthlyBalance(walletId, credits) {
+    const transaction = await sequelize.transaction();
+    try {
+        console.log(`reached in Service with wallet id: ${walletId} and new Meeting Room Credits: ${credits}`);
+        const wallet = await walletRepository.updateMonthlyCredits(walletId, credits, transaction);
+        await transaction.commit();
+        return wallet;
+    } catch(error) {
+        await transaction.rollback();
+        console.error('❌ Unable to fetch wallet:', error.message);
+        throw error;
+    }
+}
+
 module.exports = {
-    resetAllWalletBalancesService
+    resetAllWalletBalancesService,
+    checkAndUpdateMonthlyBalance
 };
