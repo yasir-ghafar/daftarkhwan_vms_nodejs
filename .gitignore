@@ -2,3 +2,4 @@ node_modules/
 .env
 combines.log
 public/images
+PROJECT_DOCUMENTATION.md

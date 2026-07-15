@@ -6,5 +6,5 @@ module.exports = {
     MemberController: require('./member-controller'),
     MeetingRoomController: require('./meeting-room-controller'),
     BookingController: require('./booking-controller'),
-    
+    DashboardController: require('./dashboard-controller'),
 }
