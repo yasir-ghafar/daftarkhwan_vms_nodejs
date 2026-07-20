@@ -19,12 +19,8 @@ async function createBooking(req, res) {
             .status(StatusCodes.CREATED)
             .json(SuccessResponse);
     } catch(error) {
-        // Ensure Express always receives an integer status (raw Sequelize/JS errors have none)
-        const statusCode = Number.isInteger(error.statusCode)
-            ? error.statusCode
-            : StatusCodes.INTERNAL_SERVER_ERROR;
         return res
-            .status(statusCode)
+            .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
             .json({
                 success: false,
                 message: error.message || 'Something went wrong.'

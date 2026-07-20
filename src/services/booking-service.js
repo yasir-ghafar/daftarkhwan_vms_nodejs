@@ -1,4 +1,4 @@
-const { sequelize, Location, MeetingRoom } = require("../models");
+const { sequelize, Location } = require("../models");
 const userRepo = require("../repositories/user-repository");
 const walletRepo = require("../repositories/wallet-repository");
 const activityRepo = require("../repositories/activity-repository");
@@ -7,7 +7,10 @@ const bookingRepo = require("../repositories/booking-repository");
 const AppError = require("../utils/error/app-error");
 const { StatusCodes } = require("http-status-codes");
 
-const SLOT_DURATION_MINS = 30;
+const { MeetingRoomRepository } = require("../repositories");
+
+const meetingRoomRepository = new MeetingRoomRepository();
+
 
 /// Utility Method Required In Repo
 function validateSlotTiming(startTime, endTime) {
@@ -15,7 +18,7 @@ function validateSlotTiming(startTime, endTime) {
   const end = new Date(endTime);
 
   if (isNaN(start) || isNaN(end)) {
-    throw new AppError("Invalid start or end time", StatusCodes.BAD_REQUEST);
+    throw new Error("Invalid start or end time");
   }
 
   const isSameDay =
@@ -24,93 +27,13 @@ function validateSlotTiming(startTime, endTime) {
     start.getDate() === end.getDate();
 
   if (!isSameDay) {
-    throw new AppError(
-      "Start and end time must be on the same date",
-      StatusCodes.BAD_REQUEST
-    );
+    throw new Error("Start and end time must be on the same date");
   }
 
   const opening = new Date(start.getFullYear(), start.getMonth(), start.getDate(), 9, 0, 0);
   const closing = new Date(start.getFullYear(), start.getMonth(), start.getDate(), 21, 0, 0);
 
   return start >= opening && end <= closing;
-}
-
-// FIX: normalize any accepted time input to HH:mm:ss for consistent TIME comparisons
-function toTimeOnly(value) {
-  if (value == null) {
-    throw new AppError("Invalid start or end time", StatusCodes.BAD_REQUEST);
-  }
-
-  if (value instanceof Date) {
-    if (isNaN(value.getTime())) {
-      throw new AppError("Invalid start or end time", StatusCodes.BAD_REQUEST);
-    }
-    return formatTimeMinutes(value.getUTCHours() * 60 + value.getUTCMinutes());
-  }
-
-  const str = String(value).trim();
-  const isoMatch = str.match(/T(\d{2}):(\d{2})(?::(\d{2}))?/);
-  if (isoMatch) {
-    return `${isoMatch[1]}:${isoMatch[2]}:${isoMatch[3] || "00"}`;
-  }
-
-  const timeMatch = str.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
-  if (timeMatch) {
-    return `${String(Number(timeMatch[1])).padStart(2, "0")}:${timeMatch[2]}:${timeMatch[3] || "00"}`;
-  }
-
-  const parsed = new Date(str);
-  if (!isNaN(parsed.getTime())) {
-    return formatTimeMinutes(parsed.getUTCHours() * 60 + parsed.getUTCMinutes());
-  }
-
-  throw new AppError("Invalid start or end time", StatusCodes.BAD_REQUEST);
-}
-
-function timeToMinutes(timeOnly) {
-  const [hours, minutes] = timeOnly.split(":").map(Number);
-  return hours * 60 + minutes;
-}
-
-function formatTimeMinutes(totalMinutes) {
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:00`;
-}
-
-// FIX: expand booking window into discrete 30-min slot starts for unique DB rows
-function expandThirtyMinuteSlots(startTimeOnly, endTimeOnly) {
-  const startMins = timeToMinutes(startTimeOnly);
-  const endMins = timeToMinutes(endTimeOnly);
-
-  if (endMins <= startMins) {
-    throw new AppError(
-      "Time must align with 30-minute slot boundaries",
-      StatusCodes.BAD_REQUEST
-    );
-  }
-
-  if ((endMins - startMins) % SLOT_DURATION_MINS !== 0) {
-    throw new AppError(
-      "Time must align with 30-minute slot boundaries",
-      StatusCodes.BAD_REQUEST
-    );
-  }
-
-  const slotStarts = [];
-  for (let current = startMins; current < endMins; current += SLOT_DURATION_MINS) {
-    slotStarts.push(formatTimeMinutes(current));
-  }
-  return slotStarts;
-}
-
-function isDuplicateSlotError(error) {
-  return (
-    error?.name === "SequelizeUniqueConstraintError" ||
-    error?.original?.code === "ER_DUP_ENTRY" ||
-    error?.parent?.code === "ER_DUP_ENTRY"
-  );
 }
 
 /// Method to create a booking against a meeting room
@@ -123,7 +46,7 @@ async function bookMeetingRoom({
   room_id,
   company_id,
   user_id,
-  status, // kept for request compatibility; ignored — server forces confirmed
+  status,
   title,
   description
 }) {
@@ -139,31 +62,27 @@ async function bookMeetingRoom({
       );
     }
 
-    // FIX: normalize times before availability check / slot reservation
-    const normalizedStartTime = toTimeOnly(startTime);
-    const normalizedEndTime = toTimeOnly(endTime);
-
-    // FIX: lock meeting room row so concurrent creates for this room serialize
-    const room = await MeetingRoom.findByPk(room_id, {
+    /// check if the meeting room exists.
+    //const room = await meetingRoomRepository.get(room_id, transaction);
+    const room = await meetingRoomRepository.getWithOptions(room_id, {
       include: [
-        {
-          model: Location,
-          as: "location",
-          attributes: ["id", "name"]
-        }
-      ],
-      transaction,
-      lock: transaction.LOCK.UPDATE
-    });
-
+    {
+      model: Location,
+      as: 'location',
+      attributes: ['id', 'name']
+    }
+  ]
+    })
     if (!room)
       throw new AppError("Meeting Room Not Found", StatusCodes.NOT_FOUND);
 
     console.log(room);
     /// check if the slots are aligned with 30 minutes time.
-    const slotStarts = expandThirtyMinuteSlots(normalizedStartTime, normalizedEndTime);
-    const slots = slotStarts.length;
-    console.log(`TotalSlots ${slots}`);
+    const slotDurationMins = 30;
+    const slots =
+      (new Date(endTime) - new Date(startTime)) /
+      (1000 * 60 * slotDurationMins);
+    console.log(`Total Slots ${slots}`);
     if (!Number.isInteger(slots) || slots <= 0) {
       throw new AppError(
         "Time must align with 30-minute slot boundaries",
@@ -175,13 +94,7 @@ async function bookMeetingRoom({
 
     /// check if slots are available. this will check on the bases of start time and end time. and number of slots
     const isAvailable = await bookingRepo.areSlotsAvailable(
-      {
-        room_id,
-        date,
-        slots,
-        startTime: normalizedStartTime,
-        endTime: normalizedEndTime
-      },
+      { room_id, date, slots, startTime, endTime },
       transaction
     );
     if (!isAvailable) { 
@@ -219,32 +132,21 @@ async function bookMeetingRoom({
       transaction
     );
 
-    // FIX: server owns status — always confirmed (request may still send status; ignored)
+    //createBooking
     const booking = await bookingRepo.createBooking(
       {
         date: date,
-        startTime: normalizedStartTime,
-        endTime: normalizedEndTime,
+        startTime,
+        endTime: endTime,
         slots: slots,
         location_id: location_id,
         room_id: room_id,
         company_id: company_id,
         user_id: user_id,
         total_credits: cost,
-        status: "confirmed",
+        status: status,
         title: title,
         description: description
-      },
-      transaction
-    );
-
-    // FIX: insert discrete slot rows — UNIQUE index is final duplicate guard
-    await bookingRepo.createBookingSlots(
-      {
-        booking_id: booking.id,
-        room_id,
-        date,
-        slotStarts
       },
       transaction
     );
@@ -261,8 +163,8 @@ async function bookMeetingRoom({
           company: companyName,
           location: room.location?.name || "N/A",
           date,
-          startTime: normalizedStartTime,
-          endTime: normalizedEndTime,
+          startTime,
+          endTime,
           totalCredits: cost,
           slots
         },
@@ -277,25 +179,7 @@ async function bookMeetingRoom({
   } catch (error) {
     console.log(error);
     await transaction.rollback();
-
-    // Preserve intentional AppError status codes (400/403/404/409/…)
-    if (error instanceof AppError) {
-      throw error;
-    }
-
-    // FIX: map unique-slot violations to the same conflict message clients already expect
-    if (isDuplicateSlotError(error)) {
-      throw new AppError(
-        "The selected room is already booked during the requested time.",
-        StatusCodes.CONFLICT
-      );
-    }
-
-    // Never rethrow raw errors — controller requires a numeric statusCode
-    throw new AppError(
-      error.message || "Something went wrong.",
-      StatusCodes.INTERNAL_SERVER_ERROR
-    );
+    throw error;
   }
 }
 
@@ -433,7 +317,7 @@ async function cancelBooking(bookingId, userId, isAdmin = false) {
       transaction
     );
 
-    // Mark booking as cancelled (also deletes BookingSlots inside repo)
+    // Mark booking as cancelled
     await bookingRepo.cancelBookingById(bookingId, transaction);
 
     await transaction.commit();
@@ -480,6 +364,7 @@ async function getBookingsByRoomIdAndDate(roomId, date) {
     throw error;
   }
 }
+
 
 
 
