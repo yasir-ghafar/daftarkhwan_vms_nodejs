@@ -1,6 +1,8 @@
-const { sequelize , Booking, MeetingRoom, Location, User, Company } = require('../models');
+const { sequelize , Booking, BookingSlot, MeetingRoom, Location, User, Company } = require('../models');
 const { Logger } = require('../config');
 const { Op, where } = require('sequelize');
+const AppError = require('../utils/error/app-error');
+const { StatusCodes } = require('http-status-codes');
 
 async function createBooking({ date, startTime, endTime, slots, location_id, room_id, company_id, user_id, total_credits, status, title, description }, transaction) {
   console.log("Booking Status is:", status);  
@@ -19,6 +21,26 @@ async function createBooking({ date, startTime, endTime, slots, location_id, roo
       title: title,
       description: description
     }, { transaction });
+}
+
+// FIX: reserve discrete 30-min slots; UNIQUE(room_id, date, slot_start) blocks duplicates
+async function createBookingSlots({ booking_id, room_id, date, slotStarts }, transaction) {
+  const rows = slotStarts.map((slot_start) => ({
+    booking_id,
+    room_id,
+    date,
+    slot_start
+  }));
+
+  return await BookingSlot.bulkCreate(rows, { transaction });
+}
+
+// FIX: free slots on cancel so the room/time can be booked again
+async function deleteBookingSlotsByBookingId(bookingId, transaction) {
+  return await BookingSlot.destroy({
+    where: { booking_id: bookingId },
+    transaction
+  });
 }
 
 async function areSlotsAvailable({ room_id, date, slots, startTime, endTime }, transaction) {
@@ -247,6 +269,9 @@ async function cancelBookingById(bookingId, transaction) {
     throw new AppError('Booking not found or already cancelled', StatusCodes.NOT_FOUND);
   }
 
+  // FIX: release reserved slot rows so uniqueness no longer blocks rebooking
+  await deleteBookingSlotsByBookingId(bookingId, transaction);
+
   return true; // or return the updated booking if needed
 }
 
@@ -297,6 +322,8 @@ async function getBookingsByRoomAndDate(roomId, date) {
 
 module.exports = { 
   createBooking,
+  createBookingSlots,
+  deleteBookingSlotsByBookingId,
   getBookings,
   areSlotsAvailable,
   cancelBookingById,
