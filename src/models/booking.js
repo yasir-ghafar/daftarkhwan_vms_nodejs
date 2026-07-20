@@ -12,6 +12,8 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       Booking.belongsTo(models.User, {foreignKey: 'user_id'});
       Booking.belongsTo(models.MeetingRoom, { foreignKey: 'room_id', as: 'Room' })
+      // FIX: discrete slot rows enforce unique room/date/time at DB level
+      Booking.hasMany(models.BookingSlot, { foreignKey: 'booking_id', as: 'Slots' });
     }
   }
 
