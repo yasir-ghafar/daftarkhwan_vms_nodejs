@@ -9,6 +9,7 @@ const memberRoutes = require('./member-route');
 const roomRoutes = require('./meeting-room-route');
 const bookingRoute = require('./booking-routes');
 const amenitiyRoute = require('./amenity-route');
+const dashboardRoute = require('./dashboard-route');
 
 
 const router = express.Router();
@@ -29,6 +30,8 @@ router.use('/bookings',
     bookingRoute);
 router.use('/amenities',
     AuthMiddlewares.getUserAndGetUserId,
-    amenitiyRoute)
+    amenitiyRoute);
+router.use('/dashboard',
+    dashboardRoute);
 
 module.exports = router;
