@@ -13,6 +13,8 @@ const DEFAULT_SLOT_MINUTES = 30;
 const DEFAULT_LOW_BALANCE_THRESHOLD = 10;
 const ACTIVE_STATUSES = ['active', 'Active'];
 const CONFIRMED_BOOKING_STATUS = 'confirmed';
+// Keep dashboard "today" aligned with Pakistan business hours (same as wallet cron).
+const APP_TIMEZONE = 'Asia/Karachi';
 
 const DAY_NAME_TO_ABBREV = {
   monday: 'Mon',
@@ -24,11 +26,40 @@ const DAY_NAME_TO_ABBREV = {
   sunday: 'Sun'
 };
 
+function getZonedParts(date = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: APP_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+    weekday: 'long'
+  }).formatToParts(date);
+
+  const map = Object.fromEntries(
+    parts.filter((part) => part.type !== 'literal').map((part) => [part.type, part.value])
+  );
+
+  return {
+    year: parseInt(map.year, 10),
+    month: parseInt(map.month, 10),
+    day: parseInt(map.day, 10),
+    hour: parseInt(map.hour, 10) % 24,
+    minute: parseInt(map.minute, 10),
+    weekday: map.weekday
+  };
+}
+
 function getLocalDateString(date = new Date()) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
+  const { year, month, day } = getZonedParts(date);
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+function getNowMinutesInAppTz(date = new Date()) {
+  const { hour, minute } = getZonedParts(date);
+  return hour * 60 + minute;
 }
 
 function normalizeDateOnly(value) {
@@ -111,7 +142,10 @@ function isRoomAvailableOnDate(room, date) {
   const days = parseAvailableDays(room.availableDays);
   if (days.length === 0) return true; // no restriction configured
 
-  const weekdayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+  const weekdayName = date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    timeZone: APP_TIMEZONE
+  });
   const weekdayAbbrev = DAY_NAME_TO_ABBREV[weekdayName.toLowerCase()];
 
   return days.some((day) => {
@@ -152,7 +186,7 @@ function deriveBookingDisplayStatus(booking, now = new Date()) {
     return 'Cancelled';
   }
 
-  const nowMins = now.getHours() * 60 + now.getMinutes();
+  const nowMins = getNowMinutesInAppTz(now);
   const startMins = minutesFromTimeValue(booking.startTime);
   const endMins = minutesFromTimeValue(booking.endTime);
 
