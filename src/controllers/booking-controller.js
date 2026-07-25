@@ -101,6 +101,52 @@ async function getBookingsByUserId(req, res) {
     }
 }
 
+/// Get Booking By Booking Id
+async function getBookingById(req, res) {
+    try {
+        const { id } = req.params;
+        const booking = await bookingService.getBookingById(id);
+
+        SuccessResponse.data = booking;
+        SuccessResponse.message = 'Booking Fetched Successfully';
+        return res
+            .status(StatusCodes.OK)
+            .json(SuccessResponse);
+    } catch (error) {
+        ErrorResponse.error = error;
+        ErrorResponse.message = error.message || 'Something went wrong while fetching the booking.';
+        return res
+            .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+            .json(ErrorResponse);
+    }
+}
+
+/// Search Bookings by location, meeting room, company and/or user
+async function searchBookings(req, res) {
+    try {
+        const { location_id, room_id, company_id, user_id } = req.query;
+
+        const bookings = await bookingService.searchBookings({
+            location_id,
+            room_id,
+            company_id,
+            user_id
+        });
+
+        SuccessResponse.data = bookings;
+        SuccessResponse.message = 'Bookings Fetched Successfully';
+        return res
+            .status(StatusCodes.OK)
+            .json(SuccessResponse);
+    } catch (error) {
+        ErrorResponse.error = error;
+        ErrorResponse.message = error.message || 'Something went wrong while searching bookings.';
+        return res
+            .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+            .json(ErrorResponse);
+    }
+}
+
 /// Get Bookings for a Room on specific date.
 async function bookigsByRoomAndDate(req, res) {
     console.log('getting in controller');
@@ -130,5 +176,7 @@ module.exports = {
     getBookings,
     cancelBooking,
     bookigsByRoomAndDate,
-    getBookingsByUserId
+    getBookingsByUserId,
+    getBookingById,
+    searchBookings
 }

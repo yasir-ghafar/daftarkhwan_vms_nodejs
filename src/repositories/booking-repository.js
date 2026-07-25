@@ -116,7 +116,7 @@ async function getBookingsWithPagination(limit, offset) {
           ]
         }
       ],
-      order: [['date', 'DESC']],
+      order: [['date', 'DESC'], ['createdAt', 'DESC']],
       limit: limit,
       offset: offset,
       distinct: true // important for correct count with indcludes
@@ -174,6 +174,43 @@ async function getBookingsByUserId(userId) {
   });
   } catch (error) {
     Logger.error('Something went wrong in Booking Repo: getBookings', error);
+    throw error;
+  }
+}
+
+async function getBookingById(bookingId) {
+  try {
+    return await Booking.findOne({
+      where: { id: bookingId },
+      include: [
+        {
+          model: MeetingRoom,
+          as: 'Room',
+          attributes: ['id', 'name', 'image'],
+          include: [
+            {
+              model: Location,
+              as: 'location',
+              attributes: ['id', 'name'],
+            }
+          ]
+        },
+        {
+          model: User,
+          as: 'User',
+          attributes: ['id', 'name'],
+          include: [
+            {
+              model: Company,
+              as: 'Company',
+              attributes: ['id', 'name'],
+            }
+          ]
+        }
+      ]
+    });
+  } catch (error) {
+    Logger.error('Something went wrong in Booking Repo: getBookingById', error);
     throw error;
   }
 }
@@ -294,6 +331,51 @@ async function getBookingsByRoomAndDate(roomId, date) {
   });
 }
 
+async function searchBookings({ location_id, room_id, company_id, user_id }) {
+  try {
+    const where = {};
+
+    if (location_id) where.location_id = location_id;
+    if (room_id) where.room_id = room_id;
+    if (company_id) where.company_id = company_id;
+    if (user_id) where.user_id = user_id;
+
+    return await Booking.findAll({
+      where,
+      include: [
+        {
+          model: MeetingRoom,
+          as: 'Room',
+          attributes: ['id', 'name', 'image'],
+          include: [
+            {
+              model: Location,
+              as: 'location',
+              attributes: ['id', 'name'],
+            }
+          ]
+        },
+        {
+          model: User,
+          as: 'User',
+          attributes: ['id', 'name'],
+          include: [
+            {
+              model: Company,
+              as: 'Company',
+              attributes: ['id', 'name'],
+            }
+          ]
+        }
+      ],
+      order: [['date', 'DESC'], ['createdAt', 'DESC']]
+    });
+  } catch (error) {
+    Logger.error('Something went wrong in Booking Repo: searchBookings', error);
+    throw error;
+  }
+}
+
 
 module.exports = { 
   createBooking,
@@ -305,5 +387,7 @@ module.exports = {
   getBookingsByRoomAndDate,
   getBookingsByMeetingRoomId,
   getBookingsByUserId,
+  getBookingById,
+  searchBookings,
   getBookingsWithPagination
 };

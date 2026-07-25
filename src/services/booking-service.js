@@ -226,6 +226,28 @@ async function getAllBookingsByUserId(userId) {
     }
 }
 
+/// Get Booking by Booking Id
+async function getBookingById(bookingId) {
+  try {
+    const booking = await bookingRepo.getBookingById(bookingId);
+
+    if (!booking) {
+      throw new AppError("Booking not found", StatusCodes.NOT_FOUND);
+    }
+
+    return booking;
+  } catch (error) {
+    if (error.name === "SequelizeValidationError") {
+      const explanation = error.errors.map((err) => err.message);
+      throw new AppError(
+        `Validation error: ${explanation.join(", ")}`,
+        StatusCodes.BAD_REQUEST
+      );
+    }
+    throw error;
+  }
+}
+
 /// Cancel Booking
 async function cancelBooking(bookingId, userId, isAdmin = false) {
   const transaction = await sequelize.transaction();
@@ -328,6 +350,29 @@ async function cancelBooking(bookingId, userId, isAdmin = false) {
   }
 }
 
+/// Search bookings by location, meeting room, company and/or user
+async function searchBookings({ location_id, room_id, company_id, user_id }) {
+  try {
+    const bookings = await bookingRepo.searchBookings({
+      location_id,
+      room_id,
+      company_id,
+      user_id
+    });
+
+    return bookings;
+  } catch (error) {
+    if (error.name === "SequelizeValidationError") {
+      const explanation = error.errors.map((err) => err.message);
+      throw new AppError(
+        `Validation error: ${explanation.join(", ")}`,
+        StatusCodes.BAD_REQUEST
+      );
+    }
+    throw error;
+  }
+}
+
 /// method to get Bookings of a single meeting room on a specific date.
 async function getBookingsByRoomIdAndDate(roomId, date) {
   console.log('getting in service');
@@ -375,4 +420,6 @@ module.exports = {
   cancelBooking,
   getBookingsByRoomIdAndDate,
   getAllBookingsByUserId,
+  getBookingById,
+  searchBookings,
 };
