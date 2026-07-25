@@ -16,9 +16,16 @@ router.get('/user/:id',
 router.get('/by-room-and-date',
     BookingController.bookigsByRoomAndDate);
 
+/// Search bookings by location, meeting room, company and/or user
+router.get('/search',
+    AuthMiddlewares.getUserAndGetUserId,
+    AuthMiddlewares.authorizeRoles('admin', 'manager', 'member'),
+    BookingController.searchBookings);
+
 router.get('/:id',
     AuthMiddlewares.getUserAndGetUserId,
-    BookingController.getBookings);
+    AuthMiddlewares.authorizeRoles('admin', 'manager', 'member'),
+    BookingController.getBookingById);
 
 router.get('/',
     AuthMiddlewares.getUserAndGetUserId,
