@@ -11,6 +11,64 @@ const { MeetingRoomRepository } = require("../repositories");
 
 const meetingRoomRepository = new MeetingRoomRepository();
 
+function isValidCalendarDate(year, month, day) {
+  const dt = new Date(Date.UTC(year, month - 1, day));
+  return (
+    dt.getUTCFullYear() === year &&
+    dt.getUTCMonth() === month - 1 &&
+    dt.getUTCDate() === day
+  );
+}
+
+/// Normalize to YYYY-MM-DD for DATEONLY. Rejects impossible years (e.g. 32026-06-30).
+function toDateOnlyString(value) {
+  if (value == null || value === "") return null;
+
+  if (value instanceof Date) {
+    if (Number.isNaN(value.getTime())) return null;
+    const year = value.getUTCFullYear();
+    if (year < 2000 || year > 2100) return null;
+    const month = String(value.getUTCMonth() + 1).padStart(2, "0");
+    const day = String(value.getUTCDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  const raw = String(value).trim();
+  const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) {
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+
+    if (year < 2000 || year > 2100) return null;
+    if (!isValidCalendarDate(year, month, day)) return null;
+
+    return `${match[1]}-${match[2]}-${match[3]}`;
+  }
+
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) return null;
+
+  return toDateOnlyString(parsed);
+}
+
+/// Prefer a valid `date`; otherwise derive from startTime (ISO datetime).
+function normalizeBookingDate(date, startTime) {
+  let normalized = toDateOnlyString(date);
+
+  if (!normalized) {
+    normalized = toDateOnlyString(startTime);
+  }
+
+  if (!normalized) {
+    throw new AppError(
+      "Invalid date. Use YYYY-MM-DD format.",
+      StatusCodes.BAD_REQUEST
+    );
+  }
+
+  return normalized;
+}
 
 /// Utility Method Required In Repo
 function validateSlotTiming(startTime, endTime) {
@@ -18,7 +76,7 @@ function validateSlotTiming(startTime, endTime) {
   const end = new Date(endTime);
 
   if (isNaN(start) || isNaN(end)) {
-    throw new Error("Invalid start or end time");
+    throw new AppError("Invalid start or end time", StatusCodes.BAD_REQUEST);
   }
 
   const isSameDay =
@@ -27,7 +85,10 @@ function validateSlotTiming(startTime, endTime) {
     start.getDate() === end.getDate();
 
   if (!isSameDay) {
-    throw new Error("Start and end time must be on the same date");
+    throw new AppError(
+      "Start and end time must be on the same date",
+      StatusCodes.BAD_REQUEST
+    );
   }
 
   const opening = new Date(start.getFullYear(), start.getMonth(), start.getDate(), 9, 0, 0);
@@ -54,6 +115,8 @@ async function bookMeetingRoom({
   const transaction = await sequelize.transaction();
 
   try {
+    const normalizedDate = normalizeBookingDate(date, startTime);
+
     /// Check if the booking time is according to slots
     if (!validateSlotTiming(startTime, endTime)) {
       throw new AppError(
@@ -94,7 +157,7 @@ async function bookMeetingRoom({
 
     /// check if slots are available. this will check on the bases of start time and end time. and number of slots
     const isAvailable = await bookingRepo.areSlotsAvailable(
-      { room_id, date, slots, startTime, endTime },
+      { room_id, date: normalizedDate, slots, startTime, endTime },
       transaction
     );
     if (!isAvailable) { 
@@ -135,7 +198,7 @@ async function bookMeetingRoom({
     //createBooking
     const booking = await bookingRepo.createBooking(
       {
-        date: date,
+        date: normalizedDate,
         startTime,
         endTime: endTime,
         slots: slots,
@@ -162,7 +225,7 @@ async function bookMeetingRoom({
           roomName: room.name,
           company: companyName,
           location: room.location?.name || "N/A",
-          date,
+          date: normalizedDate,
           startTime,
           endTime,
           totalCredits: cost,

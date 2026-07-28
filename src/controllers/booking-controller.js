@@ -19,8 +19,11 @@ async function createBooking(req, res) {
             .status(StatusCodes.CREATED)
             .json(SuccessResponse);
     } catch(error) {
+        const statusCode = Number.isInteger(error.statusCode)
+            ? error.statusCode
+            : StatusCodes.INTERNAL_SERVER_ERROR;
         return res
-            .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+            .status(statusCode)
             .json({
                 success: false,
                 message: error.message || 'Something went wrong.'
