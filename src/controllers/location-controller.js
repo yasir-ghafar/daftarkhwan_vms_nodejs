@@ -51,9 +51,9 @@ async function createLocation(req, res) {
 async function updateLocation(req, res) {
   const { id } = req.params;
   const { body, file } = req;
+  
    try {
-
-
+    console.log("FILE_NAME", file);
     const updatedData = {
       name: body.name,
       seatingCapacity: body.seatingCapacity,
@@ -64,16 +64,22 @@ async function updateLocation(req, res) {
       businessEndTime: body.businessEndTime,
       legalBusinessName: body.legalBusinessName,
       address: body.address,
-      image: body.image,
       city: body.city,
-      status: body.status, // assuming 'status' replaces 'state'
-      // image: imageUrl || '', // uncomment when file upload is needed
+      status: body.status,
+      image: file ? getFilename(file.path) : null,
     };
+
+    // // Only update image when a new file is uploaded (same pattern as createLocation)
+    // if (file) {
+    //     console.log("File path:" + file.path);
+    //   updatedData.image = getFilename(file.path);
+    // }
 
     const location = await LocationService.updateLocation(id, updatedData);
     SuccessResponse.data = location;
     return res.status(StatusCodes.OK).json(SuccessResponse);
   } catch (error) {
+    console.log(error);
     ErrorResponse.error = error;
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(ErrorResponse);
   }

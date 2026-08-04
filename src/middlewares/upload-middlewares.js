@@ -1,22 +1,11 @@
-const { uploaders, createUploader, handleUploadError } = require('../utils/multer-uploader');
+const { createUploader, handleUploadError } = require('../utils/multer-uploader');
 
 // Middleware factory for handling file uploads
 const uploadMiddleware = (config = {}) => {
-    let uploader;
-
-    if (typeof config === 'string' && uploaders[config]) {
-        // use pre-configured uploader
-        uploader = uploaders[config];
-    } else if (typeof config === 'object') {
-        // Create custom uploader with single file by default
-        uploader = createUploader(config).single('image');
-    } else {
-        // Default to single image upload
-        uploader = createUploader().single('image');
-    }
+    const options = (config && typeof config === 'object') ? config : {};
+    const uploader = createUploader(options).single('image');
 
     // return a middleware function that wraps both uploader and error handler
-
     return (req, res, next) => {
         uploader(req, res, (err) => {
             if (err) {
