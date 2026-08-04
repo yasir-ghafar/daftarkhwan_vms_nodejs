@@ -30,7 +30,7 @@ router.delete('/delete/:id',
 router.put('/:id',
     AuthMiddlewares.getUserAndGetUserId,
     AuthMiddlewares.authorizeRoles('admin'),
-    //imageUpload.single("image"),
+    uploadMiddlewares.locationImage,
     LocationController.updateLocation);
 
 module.exports = router;
