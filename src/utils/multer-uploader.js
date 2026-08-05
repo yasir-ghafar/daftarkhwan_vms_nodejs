@@ -1,10 +1,12 @@
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const { ServerConfig } = require('../config');
 
 const createUploader = (options = {}) => {
     const {
-        destination = 'public/images',
+        // Relative folder under UPLOAD_DIR, e.g. 'locations'
+        destination = '',
         allowedMimeTypes = [
             'image/jpeg',
             'image/png',
@@ -17,7 +19,10 @@ const createUploader = (options = {}) => {
         filenamePrefix = ''
     } = options;
 
-    const uploadPath = path.join(process.cwd(), destination);
+    const uploadPath = destination
+        ? path.join(ServerConfig.UPLOAD_DIR, destination)
+        : ServerConfig.UPLOAD_DIR;
+
     let isUploadEnabled = true;
 
     /**

@@ -22,21 +22,21 @@ const uploadMiddlewares = {
     // single image upload
     singleImage: uploadMiddleware(),
 
-    // location-specific image upload
+    // location-specific image upload (under UPLOAD_DIR/locations)
     locationImage: uploadMiddleware({
-        destination: 'public/images/locations',
+        destination: 'locations',
         filenamePrefix: 'location_'
     }),
 
-    // room-specific image upload
+    // room-specific image upload (under UPLOAD_DIR/room)
     meetingRoomImage: uploadMiddleware({
-        destination: 'public/images/room',
+        destination: 'room',
         filenamePrefix: 'room_'
     }),
 
-    // profile-specific image upload
+    // profile-specific image upload (under UPLOAD_DIR/profile)
     profileImage: uploadMiddleware({
-        destination: 'public/images/profile',
+        destination: 'profile',
         filenamePrefix: 'profile_'
     })
 }
