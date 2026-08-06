@@ -44,5 +44,6 @@ walletBalanceJob.start();
 app.listen(PORT, () => {
     console.log(`Successfully started the server on PORT: ${PORT}`);
     console.log(`Uploads directory: ${ServerConfig.UPLOAD_DIR}`);
-    console.log(`Access images at: http://localhost:${PORT}/api/images/`);
+    console.log(`BASE_URL: ${ServerConfig.BASE_URL}`);
+    console.log(`Access images at: ${ServerConfig.BASE_URL}/api/images/`);
 }); 

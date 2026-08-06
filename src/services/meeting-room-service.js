@@ -4,7 +4,7 @@ const AppError = require("../utils/error/app-error");
 const { Location, Booking, User, Company } = require("../models");
 const { Op } = require("sequelize");
 const moment = require("moment");
-const { getFileUrl } = require("../utils/file-manager");
+const { getFileUrl, UPLOAD_FOLDERS } = require("../utils/file-manager");
 const {
   getLocalDateString,
   getNowMinutesInAppTz,
@@ -47,7 +47,7 @@ function formatRoom(room) {
     // if image is stored as just a filename, convert to full URL
     if (roomData.image && !roomData.image.includes('://')) {
       console.log("Creating URL for image:", roomData.image);
-      roomData.imageUrl = getFileUrl(roomData.image, 'rooms');
+      roomData.imageUrl = getFileUrl(roomData.image, UPLOAD_FOLDERS.room);
       console.log("Image URL created:", roomData.imageUrl);
     } else if (roomData.image) {
       console.log("Image is already a URL");
