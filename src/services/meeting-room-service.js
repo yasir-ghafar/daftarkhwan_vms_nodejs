@@ -5,6 +5,11 @@ const { Location, Booking, User, Company } = require("../models");
 const { Op } = require("sequelize");
 const moment = require("moment");
 const { getFileUrl } = require("../utils/file-manager");
+const {
+  getLocalDateString,
+  getNowMinutesInAppTz,
+  minutesFromTimeValue
+} = require("../utils/app-timezone");
 
 const meetingRoomRepository = new MeetingRoomRepository();
 const amenityRepository = new AmenityRepository();
@@ -375,7 +380,8 @@ async function getMeetingRoomWithStatus(id) {
       throw new AppError("Meeting Room Not Found", StatusCodes.NOT_FOUND);
 
     const roomData = room.toJSON();
-    const today = moment().format("YYYY-MM-DD");
+    // Align "today" with Asia/Karachi so availability matches create/cancel past-slot checks.
+    const today = getLocalDateString();
 
     // Filter only today's bookings
     const bookingsToday = roomData.Bookings.filter((b) => b.date === today);
@@ -463,12 +469,18 @@ async function getMeetingRoomAvailabilityByDate(id, date) {
 
 
 function calculateAvailableSlots(room, bookings = [], date = null) {
-  // Use given date or fallback to today
+  // Use given date or fallback to "today" in Asia/Karachi (not server local TZ).
+  const today = getLocalDateString();
   const targetDate = date
     ? moment(date, "YYYY-MM-DD").format("YYYY-MM-DD")
-    : moment().format("YYYY-MM-DD");
+    : today;
 
   console.log(`Target date:`, targetDate);
+
+  // Past calendar days have no bookable slots.
+  if (targetDate < today) {
+    return { availableSlots: [], availableSlotsCount: 0 };
+  }
 
   // Build opening/closing times for the target date
   const openingTime = moment(`${targetDate} ${room.openingTime}`, "YYYY-MM-DD hh:mm:ss A");
@@ -496,7 +508,17 @@ function calculateAvailableSlots(room, bookings = [], date = null) {
     b => b.date === targetDate && b.status !== "cancelled"
   );
 
+  // For today, hide slots whose start time has already passed (Asia/Karachi).
+  const nowMins = targetDate === today ? getNowMinutesInAppTz() : null;
+
   const availableSlots = slots.filter(slot => {
+    if (nowMins != null) {
+      const slotStartMins = minutesFromTimeValue(slot.start);
+      if (slotStartMins != null && slotStartMins <= nowMins) {
+        return false;
+      }
+    }
+
     const slotStartTime = moment(`${targetDate} ${slot.start}`, "YYYY-MM-DD HH:mm");
     const slotEndTime = moment(`${targetDate} ${slot.end}`, "YYYY-MM-DD HH:mm");
 

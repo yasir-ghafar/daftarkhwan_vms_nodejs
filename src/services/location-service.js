@@ -84,8 +84,10 @@ async function getLocationById(id) {
       throw new AppError("Location not found.", StatusCodes.NOT_FOUND);
     }
 
+    const formatedLocation = formatLocation(location);
+
     console.log("returning object");
-    return location;
+    return formatedLocation;
   } catch (error) {
     if (error.name == "SequelizeValidationError") {
       let explanation = [];

@@ -6,6 +6,7 @@ const bookingRepo = require("../repositories/booking-repository");
 
 const AppError = require("../utils/error/app-error");
 const { StatusCodes } = require("http-status-codes");
+const { isSlotInPast } = require("../utils/app-timezone");
 
 const { MeetingRoomRepository } = require("../repositories");
 
@@ -54,6 +55,15 @@ async function bookMeetingRoom({
   const transaction = await sequelize.transaction();
 
   try {
+    // Reject past / already-started slots (Asia/Karachi).
+    // Without this, a 4:30 PM slot could be created at 5:00 PM and still appear in activity reports.
+    if (isSlotInPast(date, startTime)) {
+      throw new AppError(
+        "Cannot book a past or already started time slot",
+        StatusCodes.BAD_REQUEST
+      );
+    }
+
     /// Check if the booking time is according to slots
     if (!validateSlotTiming(startTime, endTime)) {
       throw new AppError(
@@ -280,36 +290,8 @@ async function cancelBooking(bookingId, userId, isAdmin = false) {
       );
     }
 
-    // Prevent cancellation of past or ongoing bookings
-    const now = new Date();
-    const nowDateUTC = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
-    );
-    const nowTimeUTC = now.getUTCHours() * 60 + now.getUTCMinutes();
-
-    const bookingDate = new Date(`${booking.date}T00:00:00.000Z`);
-    const bookingStart = new Date(booking.startTime);
-    const bookingTimeMins =
-      bookingStart.getUTCHours() * 60 + bookingStart.getUTCMinutes();
-
-    if (bookingDate < nowDateUTC) {
-      throw new AppError(
-        "Cannot cancel a booking for a past date",
-        StatusCodes.BAD_REQUEST
-      );
-    }
-
-    if (
-      bookingDate.getTime() === nowDateUTC.getTime() &&
-      bookingTimeMins <= nowTimeUTC
-    ) {
-      throw new AppError(
-        "Cannot cancel a booking that has already started",
-        StatusCodes.BAD_REQUEST
-      );
-    }
-
-    if (bookingStart <= now) {
+    // Same past-slot rule as create — use Asia/Karachi, not raw UTC/server local.
+    if (isSlotInPast(booking.date, booking.startTime)) {
       throw new AppError(
         "Cannot cancel a past or ongoing booking",
         StatusCodes.BAD_REQUEST
