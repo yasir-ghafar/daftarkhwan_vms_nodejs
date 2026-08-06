@@ -3,7 +3,6 @@ require("dotenv").config(); //to make sure it gets the .env file
 
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 const timeout = require('connect-timeout');
 const { ServerConfig } = require('./config');
 const  apiRoutes = require('./routes');
@@ -25,7 +24,8 @@ app.use((req, res, next) => {
 
 //app.use(express.urlencoded({extended: true}));
 
-app.use('/api/images', express.static(path.join(__dirname, '..', 'public', 'images')));
+// Serve uploads from UPLOAD_DIR (outside the repo in production)
+app.use('/api/images', express.static(ServerConfig.UPLOAD_DIR));
 
 app.use('/api', apiRoutes)
 
@@ -43,6 +43,6 @@ app.use((err, req, res, next) => {
 walletBalanceJob.start();
 app.listen(PORT, () => {
     console.log(`Successfully started the server on PORT: ${PORT}`);
-    console.log(`Access images at:`);
-    console.log(`- http://localhost:${PORT}/api/images/`);
+    console.log(`Uploads directory: ${ServerConfig.UPLOAD_DIR}`);
+    console.log(`Access images at: http://localhost:${PORT}/api/images/`);
 }); 
