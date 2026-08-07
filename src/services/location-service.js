@@ -3,7 +3,7 @@ const { LocationRepository } = require("../repositories");
 const AppError = require("../utils/error/app-error");
 
 const { MeetingRoom } = require("../models");
-const { getFileUrl } = require("../utils/file-manager");
+const { getFileUrl, UPLOAD_FOLDERS } = require("../utils/file-manager");
 
 const locationRepository = new LocationRepository();
 
@@ -42,7 +42,7 @@ function formatLocation(location) {
   if (locationData.image && !locationData.image.includes('://')) {
     console.log("Creating URL for image:", locationData.image);
     // Use the folder parameter correctly
-    locationData.imageUrl = getFileUrl(locationData.image, 'locations');
+    locationData.imageUrl = getFileUrl(locationData.image, UPLOAD_FOLDERS.locations);
     console.log("Image URL created:", locationData.imageUrl);
   } else if (locationData.image) {
     // If it's already a URL

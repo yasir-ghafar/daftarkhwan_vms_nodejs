@@ -2,6 +2,13 @@ const fs = require('fs').promises;
 const path = require('path');
 const { ServerConfig } = require('../config');
 
+// Must match multer destination folders under UPLOAD_DIR
+const UPLOAD_FOLDERS = {
+    locations: 'locations',
+    room: 'room',
+    profile: 'profile',
+};
+
 const resolveUploadPath = (...parts) => path.join(ServerConfig.UPLOAD_DIR, ...parts);
 
 // Delete a file from the uploads directory
@@ -20,7 +27,7 @@ const deleteFile = async (filePath) => {
 }
 
 // Get file URL for sending in response
-const getFileUrl = (filename, folder = 'locations') => {
+const getFileUrl = (filename, folder = UPLOAD_FOLDERS.locations) => {
     if (!filename) return null;
 
     // If it's already a full URL, return it
@@ -28,17 +35,18 @@ const getFileUrl = (filename, folder = 'locations') => {
         return filename;
     }
 
-    const baseUrl = ServerConfig.BASE_URL || process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
+    // Normalize legacy/plural aliases to the on-disk folder names
+    const folderAliases = { rooms: UPLOAD_FOLDERS.room, profiles: UPLOAD_FOLDERS.profile };
+    const resolvedFolder = folderAliases[folder] || folder || UPLOAD_FOLDERS.locations;
 
-    // Clean the filename - remove any path components
+    const baseUrl = ServerConfig.BASE_URL;
     const cleanFilename = path.basename(filename);
 
-    // Return the full URL based on folder type
-    return `${baseUrl}/api/images/${folder}/${cleanFilename}`;
+    return `${baseUrl}/api/images/${resolvedFolder}/${cleanFilename}`;
 }
 
 // Get relative path for database storage (simpler version)
-const getRelativePath = (filename, folder = 'locations') => {
+const getRelativePath = (filename, folder = UPLOAD_FOLDERS.locations) => {
     if (!filename) return null;
 
     // If it's already a full path, extract just the filename
@@ -53,11 +61,11 @@ const getStoragePath = (filename, type = 'location') => {
     if (!filename) return null;
 
     if (type === 'location') {
-        return resolveUploadPath('locations', filename);
+        return resolveUploadPath(UPLOAD_FOLDERS.locations, filename);
     } else if (type === 'meeting-room') {
-        return resolveUploadPath('room', filename);
+        return resolveUploadPath(UPLOAD_FOLDERS.room, filename);
     } else if (type === 'profile') {
-        return resolveUploadPath('profile', filename);
+        return resolveUploadPath(UPLOAD_FOLDERS.profile, filename);
     } else {
         return resolveUploadPath(filename);
     }
@@ -90,5 +98,6 @@ module.exports = {
     getStoragePath,
     fileExists,
     getFilename,
-    resolveUploadPath
+    resolveUploadPath,
+    UPLOAD_FOLDERS,
 }
