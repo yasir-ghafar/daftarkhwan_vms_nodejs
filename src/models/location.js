@@ -22,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
 
       Location.hasMany(models.Lounge, {
         foreignKey: 'LocationId',
-        as: 'location'
+        as: 'lounges'
       })
     }
   }

@@ -9,14 +9,14 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      Name: {
+      name: {
         type: Sequelize.STRING
       },
       locationId: {
         type: Sequelize.INTEGER
       },
       floor: {
-        type: Sequelize.TEXT
+        type: Sequelize.STRING
       },
       capacity: {
         type: Sequelize.INTEGER
@@ -28,10 +28,10 @@ module.exports = {
         type: Sequelize.JSON
       },
       openingTime: {
-        type: Sequelize.DATE
+        type: Sequelize.TIME
       },
       closingTime: {
-        type: Sequelize.DATE
+        type: Sequelize.TIME
       },
       slotDuration: {
         type: Sequelize.DOUBLE
@@ -40,7 +40,7 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       status: {
-        type: Sequelize.BOOLEAN
+        type: Sequelize.STRING
       },
       createdAt: {
         allowNull: false,

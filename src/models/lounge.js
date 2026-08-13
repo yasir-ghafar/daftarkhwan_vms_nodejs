@@ -20,11 +20,11 @@ module.exports = (sequelize, DataTypes) => {
     capacity: DataTypes.INTEGER,
     image: DataTypes.STRING,
     availableDays: DataTypes.JSON,
-    openingTime: DataTypes.DATE,
-    closingTime: DataTypes.DATE,
+    openingTime: DataTypes.TIME,
+    closingTime: DataTypes.TIME,
     slotDuration: DataTypes.DOUBLE,
     creditsPerSlot: DataTypes.DECIMAL,
-    status: DataTypes.BOOLEAN
+    status: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'Lounge',

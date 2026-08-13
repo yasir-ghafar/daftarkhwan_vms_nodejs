@@ -10,6 +10,7 @@ const roomRoutes = require('./meeting-room-route');
 const bookingRoute = require('./booking-routes');
 const amenitiyRoute = require('./amenity-route');
 const dashboardRoute = require('./dashboard-route');
+const loungeRoute = require('./lounge-route');
 
 
 const router = express.Router();
@@ -33,5 +34,7 @@ router.use('/amenities',
     amenitiyRoute);
 router.use('/dashboard',
     dashboardRoute);
+router.use('/lounges',
+    loungeRoute);
 
 module.exports = router;
