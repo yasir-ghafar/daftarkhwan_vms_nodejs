@@ -83,7 +83,7 @@ async function getAllLounges() {
     }
 }
 
-async function udpateLounge(id, data) {
+async function updateLounge(id, data) {
     try {
         const lounge = await loungeRepository.update(id, data);
         return lounge;
@@ -140,5 +140,5 @@ module.exports = {
     createLounge,
     getAllLounges,
     deleteLounge,
-    udpateLounge
+    updateLounge
 }
