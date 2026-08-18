@@ -4,5 +4,6 @@ module.exports = {
     CompanyService: require('./company-service'),
     MemberService: require('./member-service'),
     MeetingRoomService: require('./meeting-room-service'),
-    WalletService: require('./wallet-service')
+    WalletService: require('./wallet-service'),
+    LaoungeService: require('./lounge-service')   
 }

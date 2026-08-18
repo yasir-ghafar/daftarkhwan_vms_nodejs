@@ -344,7 +344,6 @@ async function getRoomsByLocationId(locationId) {
   }
 }
 
-
 async function getMeetingRoomWithStatus(id) {
   try {
     const room = await meetingRoomRepository.getWithOptions(id, {
@@ -415,7 +414,6 @@ async function getMeetingRoomWithStatus(id) {
   }
 }
 
-
 // Method ot get meeting room availability by date 
 async function getMeetingRoomAvailabilityByDate(id, date) {
   try {
@@ -466,7 +464,6 @@ async function getMeetingRoomAvailabilityByDate(id, date) {
     throw new AppError("Unable to Fetch Meeting Room Availability", StatusCodes.INTERNAL_SERVER_ERROR);
   }
 }
-
 
 function calculateAvailableSlots(room, bookings = [], date = null) {
   // Use given date or fallback to "today" in Asia/Karachi (not server local TZ).
@@ -536,10 +533,6 @@ function calculateAvailableSlots(room, bookings = [], date = null) {
     availableSlotsCount: availableSlots.length,
   };
 }
-
-
-
-
 
 module.exports = {
   createMeetingRoom,

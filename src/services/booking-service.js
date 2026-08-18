@@ -193,6 +193,37 @@ async function bookMeetingRoom({
   }
 }
 
+
+/// to book a Lounge
+/// the method will be called when the param in create booking endpoint is 
+/// booking_type: Lounge
+
+async function bookLounge({
+  booking_user,
+  date,
+  startTime,
+  endTime,
+  location_id,
+  lounge_id,
+  company_id,
+  user_id,
+  status,
+  title,
+  description
+}) {
+  console.log({ booking_user, user_id, room_id });
+  const transaction = await sequelize.transaction();
+
+  try {
+
+  } catch(error) {
+    console.log(error);
+    await transaction.rollback();
+    throw error;
+  }
+
+}
+
 /// Get All Bookings
 async function getAllBookings(limit, offset) {
     try {
@@ -391,9 +422,6 @@ async function getBookingsByRoomIdAndDate(roomId, date) {
     throw error;
   }
 }
-
-
-
 
 
 module.exports = {

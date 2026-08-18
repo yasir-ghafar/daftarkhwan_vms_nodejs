@@ -7,4 +7,5 @@ module.exports = {
     MeetingRoomController: require('./meeting-room-controller'),
     BookingController: require('./booking-controller'),
     DashboardController: require('./dashboard-controller'),
+    LoungeController: require('./lounge-controller')
 }
