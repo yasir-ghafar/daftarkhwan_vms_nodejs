@@ -1,4 +1,5 @@
 const LoungeRepository = require('./lounge-repository');
+const StudioRepository = require('./studio-repository');
 
 module.exports = {
     LocationRepository: require('./location-repository'),
@@ -9,6 +10,7 @@ module.exports = {
     AmenityRepository: require('./amenities-repository'),
     WalletRepository: require('./wallet-repository'),
     ActivityRepository: require('./activity-repository'),
-    LoungeRepository: require('./lounge-repository')
+    LoungeRepository: require('./lounge-repository'),
+    StudioRepository: require('./studio-repository')
     
 }
