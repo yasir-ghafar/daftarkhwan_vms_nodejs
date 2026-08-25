@@ -10,6 +10,12 @@ router.get('/summary',
     AuthMiddlewares.authorizeRoles('admin', 'manager'),
     DashboardController.getDashboardSummary);
 
+/// Upcoming bookings from call time (Ongoing + Upcoming)
+router.get('/bookings/upcoming',
+    AuthMiddlewares.getUserAndGetUserId,
+    AuthMiddlewares.authorizeRoles('admin', 'manager'),
+    DashboardController.getUpcomingBookings);
+
 /// Today's bookings (paginated)
 router.get('/bookings/today',
     AuthMiddlewares.getUserAndGetUserId,

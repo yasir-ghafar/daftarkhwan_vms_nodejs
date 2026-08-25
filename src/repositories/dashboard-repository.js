@@ -34,6 +34,7 @@ function getZonedParts(date = new Date()) {
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
+    second: '2-digit',
     hourCycle: 'h23',
     weekday: 'long'
   }).formatToParts(date);
@@ -48,6 +49,7 @@ function getZonedParts(date = new Date()) {
     day: parseInt(map.day, 10),
     hour: parseInt(map.hour, 10) % 24,
     minute: parseInt(map.minute, 10),
+    second: parseInt(map.second, 10) || 0,
     weekday: map.weekday
   };
 }
@@ -55,6 +57,11 @@ function getZonedParts(date = new Date()) {
 function getLocalDateString(date = new Date()) {
   const { year, month, day } = getZonedParts(date);
   return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+function getNowTimeStringInAppTz(date = new Date()) {
+  const { hour, minute, second } = getZonedParts(date);
+  return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`;
 }
 
 function getNowMinutesInAppTz(date = new Date()) {
@@ -186,6 +193,16 @@ function deriveBookingDisplayStatus(booking, now = new Date()) {
     return 'Cancelled';
   }
 
+  const bookingDate = normalizeDateOnly(booking.date);
+  const today = getLocalDateString(now);
+
+  if (bookingDate && bookingDate > today) {
+    return 'Upcoming';
+  }
+  if (bookingDate && bookingDate < today) {
+    return 'Completed';
+  }
+
   const nowMins = getNowMinutesInAppTz(now);
   const startMins = minutesFromTimeValue(booking.startTime);
   const endMins = minutesFromTimeValue(booking.endTime);
@@ -218,6 +235,41 @@ function formatTimeRange(startTime, endTime) {
   };
 
   return `${format(startTime)} - ${format(endTime)}`;
+}
+
+function mapBookingRow(booking, now = new Date()) {
+  return {
+    id: booking.id,
+    room: booking.Room?.name || 'N/A',
+    room_id: booking.room_id,
+    company: booking.User?.Company?.name || 'N/A',
+    company_id: booking.company_id,
+    user: booking.User?.name || 'N/A',
+    user_id: booking.user_id,
+    time: formatTimeRange(booking.startTime, booking.endTime),
+    startTime: booking.startTime,
+    endTime: booking.endTime,
+    date: booking.date,
+    status: deriveBookingDisplayStatus(booking, now),
+    title: booking.title,
+    total_credits: booking.total_credits,
+    location: booking.Room?.location?.name || 'N/A'
+  };
+}
+
+function buildRoomInclude(locationId, attributes) {
+  const include = {
+    model: MeetingRoom,
+    as: 'Room',
+    attributes,
+    required: true
+  };
+
+  if (locationId !== undefined && locationId !== null) {
+    include.where = { LocationId: locationId };
+  }
+
+  return include;
 }
 
 function buildOccupancyByLocation(locations, rooms, bookings, date) {
@@ -268,7 +320,7 @@ function buildOccupancyByLocation(locations, rooms, bookings, date) {
 }
 
 /// Aggregate stats for dashboard stat cards + occupancy by location
-async function getDashboardSummary() {
+async function getDashboardSummary(locationId) {
   try {
     const now = new Date();
     const today = getLocalDateString(now);
@@ -279,6 +331,53 @@ async function getDashboardSummary() {
     lastWeekStart.setDate(lastWeekStart.getDate() - 7);
     const lastWeekEnd = new Date(startOfWeek);
     lastWeekEnd.setDate(lastWeekEnd.getDate() - 1); // Sunday before current week
+
+    const locationWhere = locationId != null
+      ? { id: locationId, status: { [Op.in]: ACTIVE_STATUSES } }
+      : { status: { [Op.in]: ACTIVE_STATUSES } };
+
+    const roomWhere = {
+      status: { [Op.in]: ACTIVE_STATUSES },
+      ...(locationId != null ? { LocationId: locationId } : {})
+    };
+
+    const companyWhere = locationId != null
+      ? { LocationId: locationId }
+      : {};
+
+    const companyIdsAtLocation = locationId != null
+      ? (
+          await Company.findAll({
+            where: { LocationId: locationId },
+            attributes: ['id'],
+            raw: true
+          })
+        ).map((c) => c.id)
+      : null;
+
+    const userWhereBase = { status: 'active' };
+    const userWhere = companyIdsAtLocation != null
+      ? {
+          ...userWhereBase,
+          company_id: companyIdsAtLocation.length > 0
+            ? { [Op.in]: companyIdsAtLocation }
+            : { [Op.in]: [-1] } // no matching companies → zero users
+        }
+      : userWhereBase;
+
+    const roomIncludeForBookings = buildRoomInclude(locationId, [
+      'id',
+      'LocationId',
+      'duration',
+      'openingTime',
+      'closingTime'
+    ]);
+
+    const roomIncludeForLastWeek = buildRoomInclude(locationId, [
+      'id',
+      'LocationId',
+      'duration'
+    ]);
 
     const [
       locationsCount,
@@ -295,29 +394,28 @@ async function getDashboardSummary() {
       todaysBookings,
       lastWeekBookings
     ] = await Promise.all([
-      Location.count({
-        where: { status: { [Op.in]: ACTIVE_STATUSES } }
-      }),
+      Location.count({ where: locationWhere }),
       Location.count({
         where: {
-          status: { [Op.in]: ACTIVE_STATUSES },
+          ...locationWhere,
           createdAt: { [Op.gte]: startOfMonth }
         }
       }),
-      MeetingRoom.count(),
       MeetingRoom.count({
-        where: { status: { [Op.in]: ACTIVE_STATUSES } }
+        where: locationId != null ? { LocationId: locationId } : {}
       }),
-      Company.count(),
+      MeetingRoom.count({ where: roomWhere }),
+      Company.count({ where: companyWhere }),
       Company.count({
-        where: { createdAt: { [Op.gte]: startOfMonth } }
+        where: {
+          ...companyWhere,
+          createdAt: { [Op.gte]: startOfMonth }
+        }
       }),
-      User.count({
-        where: { status: 'active' }
-      }),
+      User.count({ where: userWhere }),
       User.count({
         where: {
-          status: 'active',
+          ...userWhere,
           createdAt: { [Op.gte]: startOfWeek }
         }
       }),
@@ -325,16 +423,20 @@ async function getDashboardSummary() {
         where: {
           date: today,
           status: CONFIRMED_BOOKING_STATUS
-        }
+        },
+        include: [roomIncludeForBookings],
+        distinct: true
       }),
+      // When filtering, include the requested location even if inactive so the chart has one bar.
       Location.findAll({
-        where: { status: { [Op.in]: ACTIVE_STATUSES } },
+        where: locationId != null
+          ? { id: locationId }
+          : { status: { [Op.in]: ACTIVE_STATUSES } },
         attributes: ['id', 'name', 'status'],
         order: [['name', 'ASC']]
       }),
-      // Use MeetingRoom columns: LocationId, openingTime, closingTime, duration, availableDays, status
       MeetingRoom.findAll({
-        where: { status: { [Op.in]: ACTIVE_STATUSES } },
+        where: roomWhere,
         attributes: [
           'id',
           'LocationId',
@@ -345,21 +447,13 @@ async function getDashboardSummary() {
           'status'
         ]
       }),
-      // Attribute bookings via room_id → MeetingRoom.LocationId (not Booking.location_id)
       Booking.findAll({
         where: {
           date: today,
           status: CONFIRMED_BOOKING_STATUS
         },
-        attributes: ['id', 'startTime', 'endTime', 'status', 'slots', 'room_id'],
-        include: [
-          {
-            model: MeetingRoom,
-            as: 'Room',
-            attributes: ['id', 'LocationId', 'duration', 'openingTime', 'closingTime'],
-            required: true
-          }
-        ]
+        attributes: ['id', 'startTime', 'endTime', 'status', 'slots', 'room_id', 'date'],
+        include: [roomIncludeForBookings]
       }),
       Booking.findAll({
         where: {
@@ -372,14 +466,7 @@ async function getDashboardSummary() {
           status: CONFIRMED_BOOKING_STATUS
         },
         attributes: ['id', 'date', 'startTime', 'endTime', 'status', 'slots', 'room_id'],
-        include: [
-          {
-            model: MeetingRoom,
-            as: 'Room',
-            attributes: ['id', 'LocationId', 'duration'],
-            required: true
-          }
-        ]
+        include: [roomIncludeForLastWeek]
       })
     ]);
 
@@ -454,10 +541,25 @@ async function getDashboardSummary() {
 }
 
 /// Today's bookings list with pagination
-async function getTodaysBookings(limit, offset) {
+async function getTodaysBookings(limit, offset, locationId) {
   try {
     const today = getLocalDateString();
     const now = new Date();
+
+    const roomInclude = {
+      model: MeetingRoom,
+      as: 'Room',
+      attributes: ['id', 'name'],
+      required: locationId != null,
+      ...(locationId != null ? { where: { LocationId: locationId } } : {}),
+      include: [
+        {
+          model: Location,
+          as: 'location',
+          attributes: ['id', 'name']
+        }
+      ]
+    };
 
     const { count, rows: bookings } = await Booking.findAndCountAll({
       where: {
@@ -465,18 +567,7 @@ async function getTodaysBookings(limit, offset) {
         status: CONFIRMED_BOOKING_STATUS
       },
       include: [
-        {
-          model: MeetingRoom,
-          as: 'Room',
-          attributes: ['id', 'name'],
-          include: [
-            {
-              model: Location,
-              as: 'location',
-              attributes: ['id', 'name']
-            }
-          ]
-        },
+        roomInclude,
         {
           model: User,
           as: 'User',
@@ -496,22 +587,7 @@ async function getTodaysBookings(limit, offset) {
       distinct: true
     });
 
-    const mappedBookings = bookings.map((booking) => ({
-      id: booking.id,
-      room: booking.Room?.name || 'N/A',
-      room_id: booking.room_id,
-      company: booking.User?.Company?.name || 'N/A',
-      company_id: booking.company_id,
-      user: booking.User?.name || 'N/A',
-      user_id: booking.user_id,
-      time: formatTimeRange(booking.startTime, booking.endTime),
-      startTime: booking.startTime,
-      endTime: booking.endTime,
-      status: deriveBookingDisplayStatus(booking, now),
-      title: booking.title,
-      total_credits: booking.total_credits,
-      location: booking.Room?.location?.name || 'N/A'
-    }));
+    const mappedBookings = bookings.map((booking) => mapBookingRow(booking, now));
 
     return {
       total_items: count,
@@ -526,9 +602,92 @@ async function getTodaysBookings(limit, offset) {
   }
 }
 
-/// Low wallet balance users, paginated
-async function getWalletAlerts(limit, offset, threshold = DEFAULT_LOW_BALANCE_THRESHOLD) {
+/// Next bookings from call time (Ongoing + Upcoming), optional location filter
+async function getUpcomingBookings(limit = 10, locationId) {
   try {
+    const now = new Date();
+    const today = getLocalDateString(now);
+    const nowTime = getNowTimeStringInAppTz(now);
+
+    const roomInclude = {
+      model: MeetingRoom,
+      as: 'Room',
+      attributes: ['id', 'name'],
+      required: true,
+      ...(locationId != null ? { where: { LocationId: locationId } } : {}),
+      include: [
+        {
+          model: Location,
+          as: 'location',
+          attributes: ['id', 'name']
+        }
+      ]
+    };
+
+    const bookings = await Booking.findAll({
+      where: {
+        status: CONFIRMED_BOOKING_STATUS,
+        [Op.or]: [
+          { date: { [Op.gt]: today } },
+          {
+            date: today,
+            endTime: { [Op.gt]: nowTime }
+          }
+        ]
+      },
+      include: [
+        roomInclude,
+        {
+          model: User,
+          as: 'User',
+          attributes: ['id', 'name'],
+          include: [
+            {
+              model: Company,
+              as: 'Company',
+              attributes: ['id', 'name']
+            }
+          ]
+        }
+      ],
+      order: [
+        ['date', 'ASC'],
+        ['startTime', 'ASC']
+      ],
+      limit
+    });
+
+    const mappedBookings = bookings.map((booking) => mapBookingRow(booking, now));
+
+    return {
+      total_items: mappedBookings.length,
+      page_size: limit,
+      bookings: mappedBookings
+    };
+  } catch (error) {
+    Logger.error('Something went wrong in Dashboard Repo: getUpcomingBookings', error);
+    throw error;
+  }
+}
+
+/// Low wallet balance users, paginated
+async function getWalletAlerts(limit, offset, threshold = DEFAULT_LOW_BALANCE_THRESHOLD, locationId) {
+  try {
+    const companyInclude = {
+      model: Company,
+      as: 'Company',
+      attributes: ['id', 'name'],
+      required: locationId != null,
+      ...(locationId != null ? { where: { LocationId: locationId } } : {}),
+      include: [
+        {
+          model: Location,
+          as: 'location',
+          attributes: ['id', 'name']
+        }
+      ]
+    };
+
     const { count, rows: wallets } = await Wallet.findAndCountAll({
       where: {
         [Op.or]: [
@@ -540,20 +699,8 @@ async function getWalletAlerts(limit, offset, threshold = DEFAULT_LOW_BALANCE_TH
         {
           model: User,
           attributes: ['id', 'name', 'email', 'status'],
-          include: [
-            {
-              model: Company,
-              as: 'Company',
-              attributes: ['id', 'name'],
-              include: [
-                {
-                  model: Location,
-                  as: 'location',
-                  attributes: ['id', 'name']
-                }
-              ]
-            }
-          ]
+          required: locationId != null,
+          include: [companyInclude]
         }
       ],
       order: [['meeting_room_credits', 'ASC']],
@@ -604,9 +751,12 @@ async function getWalletAlerts(limit, offset, threshold = DEFAULT_LOW_BALANCE_TH
 }
 
 /// Recently added companies, paginated
-async function getRecentCompanies(limit, offset) {
+async function getRecentCompanies(limit, offset, locationId) {
   try {
+    const where = locationId != null ? { LocationId: locationId } : {};
+
     const { count, rows: companies } = await Company.findAndCountAll({
+      where,
       include: [
         {
           model: Location,
@@ -646,6 +796,7 @@ async function getRecentCompanies(limit, offset) {
 module.exports = {
   getDashboardSummary,
   getTodaysBookings,
+  getUpcomingBookings,
   getWalletAlerts,
   getRecentCompanies,
   DEFAULT_LOW_BALANCE_THRESHOLD
