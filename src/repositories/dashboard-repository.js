@@ -319,6 +319,54 @@ function buildOccupancyByLocation(locations, rooms, bookings, date) {
   return { occupancyByLocation, avgOccupancy, totalCapacity, totalBooked };
 }
 
+/// Per-meeting-room occupancy for a single location (used when location_id is provided)
+function buildOccupancyByRoom(rooms, bookings, date) {
+  const capacityByRoom = {};
+  const bookedByRoom = {};
+
+  rooms.forEach((room) => {
+    capacityByRoom[room.id] = 0;
+    bookedByRoom[room.id] = 0;
+    if (!isRoomAvailableOnDate(room, date)) return;
+    capacityByRoom[room.id] = getRoomCapacityMinutes(room);
+  });
+
+  bookings.forEach((booking) => {
+    const roomId = booking.room_id || booking.Room?.id;
+    if (!roomId || bookedByRoom[roomId] == null) return;
+
+    const slotMinutes = Number(booking.Room?.duration) || DEFAULT_SLOT_MINUTES;
+    bookedByRoom[roomId] += getBookingDurationMinutes(booking, slotMinutes);
+  });
+
+  let totalCapacity = 0;
+  let totalBooked = 0;
+
+  const occupancyByRoom = rooms
+    .slice()
+    .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')))
+    .map((room) => {
+      const capacity = capacityByRoom[room.id] || 0;
+      const booked = bookedByRoom[room.id] || 0;
+      totalCapacity += capacity;
+      totalBooked += booked;
+
+      const percent = capacity > 0 ? Math.min(100, Math.round((booked / capacity) * 100)) : 0;
+      return {
+        id: room.id,
+        name: room.name || 'N/A',
+        location_id: room.LocationId,
+        percent
+      };
+    });
+
+  const avgOccupancy = totalCapacity > 0
+    ? Math.min(100, Math.round((totalBooked / totalCapacity) * 100))
+    : 0;
+
+  return { occupancyByRoom, avgOccupancy, totalCapacity, totalBooked };
+}
+
 /// Aggregate stats for dashboard stat cards + occupancy by location
 async function getDashboardSummary(locationId) {
   try {
@@ -439,6 +487,7 @@ async function getDashboardSummary(locationId) {
         where: roomWhere,
         attributes: [
           'id',
+          'name',
           'LocationId',
           'openingTime',
           'closingTime',
@@ -474,10 +523,25 @@ async function getDashboardSummary(locationId) {
       (booking) => deriveBookingDisplayStatus(booking, now) === 'Ongoing'
     ).length;
 
-    const {
-      occupancyByLocation,
-      avgOccupancy
-    } = buildOccupancyByLocation(activeLocations, activeRooms, todaysBookings, now);
+    let occupancyByLocation = [];
+    let occupancyByRoom = [];
+    let avgOccupancy = 0;
+
+    if (locationId != null) {
+      // Location selected → occupancy chart is per meeting room at that location
+      const roomOccupancy = buildOccupancyByRoom(activeRooms, todaysBookings, now);
+      occupancyByRoom = roomOccupancy.occupancyByRoom;
+      avgOccupancy = roomOccupancy.avgOccupancy;
+    } else {
+      const locationOccupancy = buildOccupancyByLocation(
+        activeLocations,
+        activeRooms,
+        todaysBookings,
+        now
+      );
+      occupancyByLocation = locationOccupancy.occupancyByLocation;
+      avgOccupancy = locationOccupancy.avgOccupancy;
+    }
 
     // Last week: day-by-day capacity from openingTime/closingTime/availableDays
     let lastWeekCapacity = 0;
@@ -532,7 +596,9 @@ async function getDashboardSummary(locationId) {
             : `▼ ${Math.abs(occupancyDelta)}% vs last wk`
         }
       },
-      occupancy_by_location: occupancyByLocation
+      // All locations: occupancy by location. Single location: occupancy by meeting room.
+      occupancy_by_location: occupancyByLocation,
+      occupancy_by_room: occupancyByRoom
     };
   } catch (error) {
     Logger.error('Something went wrong in Dashboard Repo: getDashboardSummary', error);
