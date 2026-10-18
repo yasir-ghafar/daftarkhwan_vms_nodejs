@@ -34,4 +34,10 @@ router.get('/companies/recent',
     AuthMiddlewares.authorizeRoles('admin', 'manager'),
     DashboardController.getRecentCompanies);
 
+
+router.get('room-utilization',
+    AuthMiddlewares.getUserAndGetUserId,
+    AuthMiddlewares.authorizeRoles('admin', 'manager'),
+    );
+
 module.exports = router;
