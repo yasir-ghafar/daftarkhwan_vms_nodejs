@@ -1,7 +1,7 @@
 const express = require('express');
 const { MeetingRoomController } = require('../../controllers');
-const { AuthMiddlewares, uploadMiddleware } = require('../../middlewares');
-const {uploadMiddlewares} = require('../../middlewares/upload-middlewares');
+const { AuthMiddlewares } = require('../../middlewares');
+const { uploadMiddlewares } = require('../../middlewares/upload-middlewares');
 
 const router = express.Router();
 

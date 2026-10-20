@@ -114,7 +114,6 @@ async function getRoomAvailabilityByDate(req, res) {
     }
 }
 
-
 async function getMeetingRoomStatus(req, res) {
     try {
         const {id} = req.params;
@@ -164,7 +163,10 @@ async function getRoomsByLocationId(req, res) {
 }
 
 async function updateMeetingRoom(req, res) {
+    const { id } = req.params;
+    const { body, file } = req;
     try {
+        console.log("FILE_NAME", file);
         const id = req.params.id;
         openingTime = moment(req.body.openingTime, "hh:mm:ss A").format("HH:mm:ss");
         closingTime = moment(req.body.closingTime, "hh:mm:ss A").format("HH:mm:ss");
@@ -173,7 +175,8 @@ async function updateMeetingRoom(req, res) {
             creditsPerSlot: req.body.creditsPerSlot,
             pricePerCredit: req.body.pricePerCredit,
             seatingCapacity: req.body.seatingCapacity,
-            image: req.body.image,
+            //image: req.body.image,
+            image: file ? getFilename(file.path) : null,
             openingTime: openingTime,
             closingTime: closingTime,
             floor: req.body.floor,

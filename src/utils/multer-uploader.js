@@ -30,6 +30,8 @@ const createUploader = (options = {}) => {
      * Never crash the app
      */
     try {
+
+        console.log("Uploading Path:" + uploadPath)
         if (!fs.existsSync(uploadPath)) {
             fs.mkdirSync(uploadPath, { recursive: true });
         }
