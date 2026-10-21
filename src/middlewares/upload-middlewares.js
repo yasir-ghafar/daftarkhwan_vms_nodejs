@@ -38,6 +38,12 @@ const uploadMiddlewares = {
     profileImage: uploadMiddleware({
         destination: 'profile',
         filenamePrefix: 'profile_'
+    }),
+
+    //profile-specific image upload (under UPLOAD_DIR/lounge)
+    loungeImage: uploadMiddleware({
+        destination: 'lounge',
+        filenamePrefix: 'lounge_'
     })
 }
 

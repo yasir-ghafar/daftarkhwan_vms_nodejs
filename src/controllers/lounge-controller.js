@@ -10,8 +10,9 @@ const { success } = require('../utils/common/error-response');
 async function createLounge(req, res) {
     const { body, file} = req;
 
-    console.log("LOUNGE_BODY", body);
     try {
+        console.log("LOUNGE_BODY:", body);
+        console.log("FILE_NAME:", file);
         openingTime = moment(req.body.openingTime, "hh:mm:ss A").format("HH:mm:ss");
         closingTime = moment(req.body.closingTime, "hh:mm:ss A").format("HH:mm:ss");
         const lounge = await LaoungeService.createLounge({
@@ -25,8 +26,7 @@ async function createLounge(req, res) {
             amenitie: req.body.amenitie,
             availableDays: req.body.availableDays,
             status: req.body.status,
-            image: null
-            //image: fild ? getFilename(file.path) : null
+            image: file ? getFilename(file.path) : null,
         });
 
         SuccessResponse.data = lounge;

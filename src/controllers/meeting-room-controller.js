@@ -85,7 +85,6 @@ async function getRoomById(req, res) {
     }
 }
 
-
 async function getRoomAvailabilityByDate(req, res) {
     try {
         const { id } = req.params;
@@ -199,7 +198,6 @@ async function updateMeetingRoom(req, res) {
 }
 
 //// Amenities
-
 async function createAmenity(req, res) {
     try {
         console.log(req.body)
